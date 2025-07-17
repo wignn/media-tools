@@ -43,7 +43,7 @@ function logDownload(info: {
 function getVideoTitle(url: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const ytdlpPath = app.isPackaged
-      ?  path.join(process.resourcesPath, 'app.asar.unpacked', 'resources', 'bin', 'yt-dlp.exe')
+      ? path.join(process.resourcesPath, 'app.asar.unpacked', 'resources', 'bin', 'yt-dlp.exe')
       : resolvePath(__dirname, '../../resources/bin/yt-dlp.exe')
 
     const yt = spawn(ytdlpPath, ['-j', url])
@@ -79,7 +79,7 @@ function createWindow(): void {
   const mainWindow = new BrowserWindow({
     width: 900,
     height: 670,
-    title: 'wign - Media Downloader',
+    title: 'Wign - Media Tool',
     icon: join(__dirname, '../../resources/icon.ico'),
     show: false,
     autoHideMenuBar: true,
@@ -88,7 +88,6 @@ function createWindow(): void {
       sandbox: false
     }
   })
-  
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
@@ -176,6 +175,8 @@ app.whenReady().then(() => {
           ? path.join(process.resourcesPath, 'app.asar.unpacked', 'resources', 'bin', 'yt-dlp.exe')
           : resolve(__dirname, '../../resources/bin/yt-dlp.exe')
 
+        const rateLimit = options?.limit ?? 512 
+
         const args = [
           audioUrl,
           '-x',
@@ -188,7 +189,7 @@ app.whenReady().then(() => {
           '--progress',
           '-v',
           '--limit-rate',
-          `${options?.limit}K`
+          `${rateLimit}K`
         ]
 
         const yt = spawn(ytdlpPath, args)
@@ -284,6 +285,7 @@ app.whenReady().then(() => {
           ? path.join(process.resourcesPath, 'app.asar.unpacked', 'resources', 'bin', 'yt-dlp.exe')
           : resolve(__dirname, '../../resources/bin/yt-dlp.exe')
 
+        const rateLimit = options?.limit ?? 512;
         const args = [
           videoUrl,
           '-o',
@@ -297,7 +299,7 @@ app.whenReady().then(() => {
           '--ffmpeg-location',
           ffmpegPath,
           '--limit-rate',
-          `${options?.limit}K`
+          `${rateLimit}K`
         ]
 
         const yt = spawn(ytdlpPath, args)

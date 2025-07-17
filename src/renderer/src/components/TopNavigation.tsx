@@ -32,7 +32,7 @@ export function TopNavigation({ sidebarOpen, onToggleSidebar }: TopNavigationPro
         </button>
         <div className="flex items-center gap-4">
           <h2 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-            wign Pro
+            Media Tool
           </h2>
           <span
             className={`px-3 py-1.5 text-sm font-bold rounded-full border transition-colors duration-300 ${

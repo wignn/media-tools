@@ -1,5 +1,5 @@
-appId: com.electron.app
-productName: app-dowloader
+appId: com.wign.mediatool
+productName: WignMediaTool
 directories:
   buildResources: build
 files:
@@ -12,7 +12,7 @@ files:
 asarUnpack:
   - resources/**
 win:
-  executableName: app-dowloader
+  executableName: WignMediaTool
   icon: build/icon.ico
   
 
@@ -43,4 +43,4 @@ appImage:
 npmRebuild: false
 publish:
   provider: generic
-  url: https://example.com/auto-updates
+  url: https://github.com/wignn/app-video-downloader

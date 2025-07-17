@@ -28,7 +28,7 @@ export function Settings() {
       try {
         const path = await window.api?.getDownloadPath()
         if (path) setDownloadPath(path)
-        setAppVersion('0.2.0')
+        setAppVersion('2.0.0')
         setAppName('App Downloader')
         setAuthor('Wign')
         const diskSpace = await window.api?.getDiskSpace()

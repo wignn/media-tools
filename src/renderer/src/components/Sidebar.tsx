@@ -78,7 +78,7 @@ export function Sidebar({ isOpen }: SidebarProps) {
                 isDarkMode ? "text-indigo-400" : "text-indigo-600"
               }`}
             >
-              Media Downloader
+              Media Tool
             </p>
           </div>
         </div>
@@ -93,7 +93,7 @@ export function Sidebar({ isOpen }: SidebarProps) {
           >
             Main Menu
           </h3>
-          <nav className="space-y-2">
+<nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
             <NavLink
               to="/"
               className={({ isActive }) =>
