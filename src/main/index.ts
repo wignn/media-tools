@@ -175,7 +175,7 @@ app.whenReady().then(() => {
           ? path.join(process.resourcesPath, 'app.asar.unpacked', 'resources', 'bin', 'yt-dlp.exe')
           : resolve(__dirname, '../../resources/bin/yt-dlp.exe')
 
-        const rateLimit = options?.limit ?? 512 
+        const rateLimit = options?.limit ?? 512
 
         const args = [
           audioUrl,
@@ -189,7 +189,9 @@ app.whenReady().then(() => {
           '--progress',
           '-v',
           '--limit-rate',
-          `${rateLimit}K`
+          `${rateLimit}K`,
+          '--no-warnings',
+          '--no-abort-on-error',
         ]
 
         const yt = spawn(ytdlpPath, args)
@@ -280,12 +282,11 @@ app.whenReady().then(() => {
               'ffmpeg.exe'
             )
           : resolve(__dirname, '../../resources/bin/ffmpeg/bin/ffmpeg.exe')
-
         const ytdlpPath = app.isPackaged
           ? path.join(process.resourcesPath, 'app.asar.unpacked', 'resources', 'bin', 'yt-dlp.exe')
           : resolve(__dirname, '../../resources/bin/yt-dlp.exe')
 
-        const rateLimit = options?.limit ?? 512;
+        const rateLimit = options?.limit ?? 512
         const args = [
           videoUrl,
           '-o',
@@ -299,7 +300,9 @@ app.whenReady().then(() => {
           '--ffmpeg-location',
           ffmpegPath,
           '--limit-rate',
-          `${rateLimit}K`
+          `${rateLimit}K`,
+          '--no-warnings',
+          '--no-abort-on-error'
         ]
 
         const yt = spawn(ytdlpPath, args)
@@ -332,15 +335,16 @@ app.whenReady().then(() => {
 
         yt.on('close', (code) => {
           activeDownloads.delete(id)
-          if (code === 0) {
+
+          const isDownloaded = fs.existsSync(outputPath) && fs.statSync(outputPath).size > 1024
+
+          if (code === 0 || isDownloaded) {
             logDownload({
               url: videoUrl,
               title: finalName.replace('.mp4', ''),
               platform: 'video',
               filePath: outputPath,
-              fileSize: fs.existsSync(outputPath)
-                ? fs.statSync(outputPath).size.toString()
-                : undefined,
+              fileSize: isDownloaded ? fs.statSync(outputPath).size.toString() : undefined,
               fileType: 'video/mp4'
             })
             resolveDownload(outputPath)

@@ -24,7 +24,7 @@ interface QueueItem {
 interface QueueDisplayProps {
   queue: QueueItem[]
   isDarkMode: boolean
-  onRetry?: (id: string) => void 
+  onRetry?: (id: string) => void
 }
 
 export function QueueDisplay({ queue, isDarkMode, onRetry }: QueueDisplayProps) {
@@ -44,6 +44,14 @@ export function QueueDisplay({ queue, isDarkMode, onRetry }: QueueDisplayProps) 
         return <ImageIcon style={{ width: '1rem', height: '1rem', color: '#3b82f6' }} />
       default:
         return <FileText style={{ width: '1rem', height: '1rem', color: '#6b7280' }} />
+    }
+  }
+
+  const cancelDownload = async (id: string) => {
+    try {
+      await window.api?.cancelDownload(id)
+    } catch (error) {
+      console.error('Failed to cancel download:', error)
     }
   }
 
@@ -171,8 +179,6 @@ export function QueueDisplay({ queue, isDarkMode, onRetry }: QueueDisplayProps) 
                   />
                 </div>
               )}
-
-              {/* Tombol Retry jika Error */}
               {item.status.startsWith('Error') && onRetry && (
                 <button
                   onClick={() => onRetry(item.id)}
@@ -195,8 +201,37 @@ export function QueueDisplay({ queue, isDarkMode, onRetry }: QueueDisplayProps) 
                 </button>
               )}
             </div>
+            <div
+              style={{
+                flexShrink: 0,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              {item.isDownloading && (
+                <button
+                  onClick={() => cancelDownload(item.id)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 4,
+                  }}
+                  title="Cancel Download"
+                >
+                  <XCircle
+                    style={{
+                      width: '1.25rem',
+                      height: '1.25rem',
+                      color: isDarkMode ? '#f87171' : '#ef4444'
+                    }}
+                  />
+                </button>
+              )}
 
-            <div style={{ flexShrink: 0 }}>{getStatusIcon(item.status)}</div>
+              {getStatusIcon(item.status)}
+            </div>
           </div>
         ))}
       </div>

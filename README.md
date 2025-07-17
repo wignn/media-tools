@@ -1,6 +1,6 @@
-# app-dowloader
+# Wign Media Tool
 
-An Electron application with React and TypeScript
+A simple and powerful video downloader for YouTube, Instagram, and Facebook. Built for fast, reliable, and user-friendly media downloading.
 
 ## Recommended IDE Setup
 

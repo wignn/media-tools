@@ -17,6 +17,7 @@ declare global {
       setDownloadLimit: (limit: string) => Promise<void>
       cancelDownload: (id: string) => Promise<void>
       getDiskSpace: () => Promise<{ total: number; free: number }>
+      cancelDownload: (id: string) => Promise<void>
     }
     electron: typeof import('@electron-toolkit/preload').electronAPI
   }
