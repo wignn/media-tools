@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Sidebar } from './components/Sidebar'
 import { TopNavigation } from './components/TopNavigation'
+import { GlobalProgressIndicator } from './components/GlobalProgressIndicator'
 import { Outlet } from 'react-router-dom'
 import { useTheme } from './contexts/theme-context'
 
@@ -23,6 +24,9 @@ export default function MainLayout() {
           </div>
         </main>
       </div>
+      
+      {/* Global Progress Indicator */}
+      <GlobalProgressIndicator />
     </div>
   )
 }

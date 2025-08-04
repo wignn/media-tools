@@ -7,55 +7,33 @@ import {
   FileText,
   ImageIcon,
   FolderOpen,
-  Calendar,
   Search,
   Filter,
-  ExternalLink
+  ExternalLink,
+  Sparkles,
+  Clock,
+  Archive,
+  Trash2
 } from 'lucide-react'
-import { type JSX, useEffect, useState } from 'react'
-
-interface DownloadLog {
-  url: string
-  title: string
-  platform: string
-  filePath: string
-  downloadedAt: string
-  fileSize?: string
-  fileType?: string
-}
+import { useEffect, useState } from 'react'
+import { useTheme } from '../contexts/theme-context'
+import { useDownloadHistoryStore } from '../store/downloadHistoryStore'
 
 function DownloadPage() {
-  const [logs, setLogs] = useState<DownloadLog[]>([])
-  const [loading, setLoading] = useState(true)
+  const { isDarkMode } = useTheme()
+  const {
+    logs,
+    isLoading: loading,
+    fetchLogs,
+    getVideoLogs,
+    getAudioLogs,
+    getTodayLogs
+  } = useDownloadHistoryStore()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedPlatform, setSelectedPlatform] = useState('all')
-  const [isDarkMode, setIsDarkMode] = useState(false)
 
   useEffect(() => {
-    const storedTheme = localStorage.getItem('theme')
-    if (storedTheme === 'dark') {
-      setIsDarkMode(true)
-    }
-
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'theme') {
-        setIsDarkMode(e.newValue === 'dark')
-      }
-    }
-
-    window.addEventListener('storage', handleStorageChange)
-
-    window.api
-      ?.getLogs()
-      .then((data: DownloadLog[]) => {
-        setLogs(data.reverse())
-        setLoading(false)
-      })
-      .catch(console.error)
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange)
-    }
+    fetchLogs()
   }, [])
 
   const getPlatformIcon = (platform: string) => {
@@ -109,32 +87,60 @@ function DownloadPage() {
   if (loading) {
     return (
       <div
-        className={`p-12 min-h-screen transition-colors duration-300 ${
-          isDarkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100'
+        className={`justify-center flex min-h-screen transition-colors duration-300 ${
+          isDarkMode
+            ? 'bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800'
+            : 'bg-gradient-to-br from-indigo-50 via-white to-purple-50'
         }`}
       >
-        <div className="animate-pulse space-y-8">
-          <div className={`h-8 rounded-lg w-1/3 ${isDarkMode ? 'bg-gray-700' : 'bg-slate-200'}`} />
-          {[...Array(3)].map((_, i) => (
-            <div
-              key={i}
-              className={`${
-                isDarkMode ? 'bg-gray-800' : 'bg-slate-100'
-              } rounded-2xl p-8 transition-colors duration-300`}
-            >
-              <div className="space-y-4">
+        <div className="container mx-auto p-6 max-w-5xl">
+          <div className="animate-pulse space-y-8">
+            <div className="flex items-center gap-6 mb-8">
+              <div
+                className={`w-16 h-16 rounded-3xl ${isDarkMode ? 'bg-gray-700' : 'bg-slate-200'}`}
+              />
+              <div className="space-y-2">
                 <div
-                  className={`h-5 rounded w-3/4 ${isDarkMode ? 'bg-gray-700' : 'bg-slate-200'}`}
+                  className={`h-8 rounded-lg w-64 ${isDarkMode ? 'bg-gray-700' : 'bg-slate-200'}`}
                 />
                 <div
-                  className={`h-4 rounded w-1/2 ${isDarkMode ? 'bg-gray-700' : 'bg-slate-200'}`}
-                />
-                <div
-                  className={`h-4 rounded w-2/3 ${isDarkMode ? 'bg-gray-700' : 'bg-slate-200'}`}
+                  className={`h-5 rounded w-48 ${isDarkMode ? 'bg-gray-700' : 'bg-slate-200'}`}
                 />
               </div>
             </div>
-          ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className={`card-container ${isDarkMode ? 'dark' : 'light'} p-6`}>
+                  <div className="space-y-3">
+                    <div
+                      className={`w-12 h-12 rounded-xl ${isDarkMode ? 'bg-gray-700' : 'bg-slate-200'}`}
+                    />
+                    <div
+                      className={`h-6 rounded w-3/4 ${isDarkMode ? 'bg-gray-700' : 'bg-slate-200'}`}
+                    />
+                    <div
+                      className={`h-4 rounded w-1/2 ${isDarkMode ? 'bg-gray-700' : 'bg-slate-200'}`}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className={`card-container ${isDarkMode ? 'dark' : 'light'} p-8`}>
+                <div className="space-y-4">
+                  <div
+                    className={`h-6 rounded w-3/4 ${isDarkMode ? 'bg-gray-700' : 'bg-slate-200'}`}
+                  />
+                  <div
+                    className={`h-4 rounded w-1/2 ${isDarkMode ? 'bg-gray-700' : 'bg-slate-200'}`}
+                  />
+                  <div
+                    className={`h-4 rounded w-2/3 ${isDarkMode ? 'bg-gray-700' : 'bg-slate-200'}`}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     )
@@ -142,333 +148,423 @@ function DownloadPage() {
 
   return (
     <div
-      className={`min-h-screen p-12 justify-center flex transition-colors duration-300 ${
-        isDarkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100'
+      className={`justify-center flex min-h-screen transition-colors duration-300 ${
+        isDarkMode
+          ? 'bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800'
+          : 'bg-gradient-to-br from-indigo-50 via-white to-purple-50'
       }`}
     >
-      <div className="max-w-7xl mx-auto flex flex-col gap-16">
-        <div className="flex flex-col gap-12">
-          <div className="flex items-center gap-6">
-            <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-3xl flex items-center justify-center shadow-xl shadow-indigo-200/50">
-              <DownloadIcon className="w-8 h-8 text-white" />
+      <div className="container mx-auto p-6 max-w-6xl">
+        {/* Enhanced Header */}
+        <div className="mb-8 text-center">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-xl">
+              <DownloadIcon className="w-10 h-10 text-white" />
             </div>
-            <div>
-              <h1
-                className={`text-4xl font-bold mb-2 transition-colors duration-300 ${
-                  isDarkMode ? 'text-white' : 'text-slate-800'
-                }`}
-              >
-                Riwayat Download
-              </h1>
-              <p
-                className={`text-lg transition-colors duration-300 ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}
-              >
-                Kelola dan lihat semua file yang telah didownload
-              </p>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <StatBox
-              icon={<DownloadIcon className="w-7 h-7 text-blue-600" />}
-              label="Total Downloads"
-              value={logs.length}
-              color="blue"
-              isDarkMode={isDarkMode}
-            />
-            <StatBox
-              icon={<Play className="w-7 h-7 text-green-600" />}
-              label="Video Files"
-              value={logs.filter((l) => l.filePath.includes('.mp4')).length}
-              color="green"
-              isDarkMode={isDarkMode}
-            />
-            <StatBox
-              icon={<Music className="w-7 h-7 text-purple-600" />}
-              label="Audio Files"
-              value={logs.filter((l) => l.filePath.includes('.mp3')).length}
-              color="purple"
-              isDarkMode={isDarkMode}
-            />
-            <StatBox
-              icon={<Calendar className="w-7 h-7 text-orange-600" />}
-              label="Today"
-              value={
-                logs.filter(
-                  (l) => new Date(l.downloadedAt).toDateString() === new Date().toDateString()
-                ).length
-              }
-              color="orange"
-              isDarkMode={isDarkMode}
+            <h1
+              className={`text-4xl font-bold transition-colors duration-300 ${
+                isDarkMode ? 'text-white' : 'text-gray-900'
+              }`}
+            >
+              Download History
+            </h1>
+            <Sparkles
+              className={`w-6 h-6 ${isDarkMode ? 'text-purple-400' : 'text-purple-600'} animate-pulse`}
             />
           </div>
-          <div className="flex flex-col sm:flex-row gap-6">
+          <p
+            className={`text-lg transition-colors duration-300 ${
+              isDarkMode ? 'text-gray-400' : 'text-gray-600'
+            }`}
+          >
+            Manage and view all your downloaded files
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div
+            className={`card-container ${isDarkMode ? 'dark' : 'light'} group hover:scale-105 transition-all duration-300`}
+          >
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg group-hover:shadow-xl transition-shadow duration-300">
+                <Archive className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <p className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  {logs.length}
+                </p>
+                <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Total Downloads
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            className={`card-container ${isDarkMode ? 'dark' : 'light'} group hover:scale-105 transition-all duration-300`}
+          >
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-2xl bg-gradient-to-br from-green-500 to-green-600 shadow-lg group-hover:shadow-xl transition-shadow duration-300">
+                <Play className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <p className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  {getVideoLogs().length}
+                </p>
+                <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Video Files
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            className={`card-container ${isDarkMode ? 'dark' : 'light'} group hover:scale-105 transition-all duration-300`}
+          >
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 shadow-lg group-hover:shadow-xl transition-shadow duration-300">
+                <Music className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <p className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  {getAudioLogs().length}
+                </p>
+                <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Audio Files
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            className={`card-container ${isDarkMode ? 'dark' : 'light'} group hover:scale-105 transition-all duration-300`}
+          >
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg group-hover:shadow-xl transition-shadow duration-300">
+                <Clock className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <p className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  {getTodayLogs().length}
+                </p>
+                <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Today</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <br />
+        <div className={`mb-8`}>
+          <div className="flex flex-col lg:flex-row gap-4">
             <div className="relative flex-1">
               <Search
-                className={`absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 transition-colors duration-300 ${
-                  isDarkMode ? 'text-gray-400' : 'text-slate-400'
+                className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors duration-300 ${
+                  searchTerm ? 'text-indigo-500' : isDarkMode ? 'text-gray-400' : 'text-gray-500'
                 }`}
               />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Cari berdasarkan judul atau platform..."
-                className={`w-full pl-14 pr-6 py-4 text-lg rounded-3xl shadow-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors duration-300 ${
-                  isDarkMode
-                    ? 'bg-gray-800/70 border border-gray-700/50 text-white placeholder-gray-400'
-                    : 'bg-white/70 border border-white/50 text-black placeholder-slate-400'
+                placeholder="Search by title or platform..."
+                className={`input-field ${isDarkMode ? 'dark' : 'light'} pl-12 w-full transition-all duration-300 ${
+                  searchTerm ? 'ring-2 ring-indigo-500/50' : ''
                 }`}
               />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
+                >
+                  <Trash2 className="w-4 h-4 text-gray-400" />
+                </button>
+              )}
             </div>
-            <div className="relative">
+
+            <div className="relative min-w-[200px]">
               <Filter
-                className={`absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 transition-colors duration-300 ${
-                  isDarkMode ? 'text-gray-400' : 'text-slate-400'
+                className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors duration-300 ${
+                  selectedPlatform !== 'all'
+                    ? 'text-indigo-500'
+                    : isDarkMode
+                      ? 'text-gray-400'
+                      : 'text-gray-500'
                 }`}
               />
               <select
-                title="Filter by Platform"
+                title="Filter by platform"
                 value={selectedPlatform}
                 onChange={(e) => setSelectedPlatform(e.target.value)}
-                className={`pl-14 pr-10 py-4 text-lg rounded-3xl shadow-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent min-w-[200px] transition-colors duration-300 ${
-                  isDarkMode
-                    ? 'bg-gray-800/70 border border-gray-700/50 text-white'
-                    : 'bg-white/70 border border-white/50 text-black'
+                className={`input-field ${isDarkMode ? 'dark' : 'light'} pl-12 w-full transition-all duration-300 ${
+                  selectedPlatform !== 'all' ? 'ring-2 ring-indigo-500/50' : ''
                 }`}
               >
-                <option value="all">Semua Platform</option>
+                <option value="all">All Platforms ({logs.length})</option>
                 {platforms.map((p) => (
                   <option key={p} value={p}>
-                    {p.charAt(0).toUpperCase() + p.slice(1)}
+                    {p.charAt(0).toUpperCase() + p.slice(1)} (
+                    {logs.filter((l) => l.platform.toLowerCase() === p).length})
                   </option>
                 ))}
               </select>
             </div>
-          </div>
-        </div>
-        {filteredLogs.length === 0 ? (
-          <div className="text-center r py-20">
-            <div
-              style={{
-                width: '8rem', 
-                height: '8rem', 
-                borderRadius: '1.5rem', 
-                margin: '0 auto 1rem', 
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: isDarkMode
-                  ? '#374151' 
-                  : 'linear-gradient(to bottom right, #e2e8f0, #cbd5e1)',
-                transition: 'all 0.3s ease'
-              }}
-            >
-              <DownloadIcon
-                style={{
-                  width: '4rem',
-                  height: '4rem',
-                  color: isDarkMode ? '#9ca3af' : '#64748b',
-                  transition: 'all 0.3s ease'
-                }}
-              />
-            </div>
-            <h3
-              style={{
-                fontSize: '1.5rem',
-                fontWeight: 600,
-                color: isDarkMode ? '#fff' : '#334155',
-                marginBottom: '1rem',
-                transition: 'all 0.3s ease'
-              }}
-            >
-              {searchTerm || selectedPlatform !== 'all' ? 'Tidak ada hasil' : 'Belum ada download'}
-            </h3>
-            <p
-              className={`text-lg mb-8 transition-colors duration-300 ${
-                isDarkMode ? 'text-gray-400' : 'text-slate-500'
-              }`}
-            >
-              {searchTerm || selectedPlatform !== 'all'
-                ? 'Coba ubah kata kunci pencarian atau filter'
-                : 'Mulai download video atau audio pertama Anda'}
-            </p>
+
             {(searchTerm || selectedPlatform !== 'all') && (
               <button
                 onClick={() => {
                   setSearchTerm('')
                   setSelectedPlatform('all')
                 }}
-                className={`px-8 py-4 text-white rounded-3xl font-semibold shadow-xl text-lg transition-all duration-200 ${
-                  isDarkMode
-                    ? 'bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800'
-                    : 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700'
-                }`}
+                className="icon-button danger group"
+                title="Clear all filters"
               >
-                Reset Filter
+                <Trash2 className="w-4 h-4 group-hover:rotate-12 transition-transform duration-300" />
               </button>
             )}
           </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {filteredLogs.map((log, index) => (
-              <div
-                key={index}
-                className={`group backdrop-blur-xl rounded-3xl border shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden ${
-                  isDarkMode ? 'bg-gray-800/70 border-gray-700/50' : 'bg-white/70 border-white/50'
+
+          <br />
+          {(searchTerm || selectedPlatform !== 'all') && (
+            <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              {searchTerm && (
+                <div className="flex items-center gap-2 px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full text-sm">
+                  <Search className="w-3 h-3" />
+                  <span>Search: "{searchTerm}"</span>
+                  <button
+                    onClick={() => setSearchTerm('')}
+                    className="hover:bg-indigo-200 dark:hover:bg-indigo-800 rounded-full p-0.5"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
+              {selectedPlatform !== 'all' && (
+                <div className="flex items-center gap-2 px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-sm">
+                  <Filter className="w-3 h-3" />
+                  <span>
+                    Platform: {selectedPlatform.charAt(0).toUpperCase() + selectedPlatform.slice(1)}
+                  </span>
+                  <button
+                    onClick={() => setSelectedPlatform('all')}
+                    className="hover:bg-purple-200 dark:hover:bg-purple-800 rounded-full p-0.5"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        <br />
+        {filteredLogs.length === 0 ? (
+          <div
+            className={`form-container ${isDarkMode ? 'dark' : 'light'} text-center relative overflow-hidden`}
+          >
+            {/* Animated background elements */}
+            <div className="absolute inset-0 opacity-5">
+              <div className="absolute top-10 left-10 w-20 h-20 bg-indigo-500 rounded-full animate-pulse" />
+              <div className="absolute top-32 right-16 w-16 h-16 bg-purple-500 rounded-full animate-pulse animation-delay-1000" />
+              <div className="absolute bottom-20 left-1/4 w-12 h-12 bg-pink-500 rounded-full animate-pulse animation-delay-2000" />
+              <div className="absolute bottom-32 right-1/3 w-8 h-8 bg-blue-500 rounded-full animate-pulse animation-delay-3000" />
+            </div>
+
+            <div className="relative z-10 py-8">
+              <div className="mb-8">
+                <div className="relative inline-block">
+                  <div className="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-600 flex items-center justify-center mb-6 shadow-2xl animate-float">
+                    <DownloadIcon className="w-16 h-16 text-white" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center animate-bounce">
+                    <Archive className="w-6 h-6 text-white" />
+                  </div>
+                  {/* Floating particles */}
+                  <div className="absolute -top-4 -left-4 w-6 h-6 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full animate-ping" />
+                  <div className="absolute -bottom-4 -right-4 w-4 h-4 bg-gradient-to-br from-green-400 to-blue-500 rounded-full animate-ping animation-delay-500" />
+                </div>
+              </div>
+
+              <h3
+                className={`text-3xl font-bold mb-4 bg-gradient-to-r ${
+                  isDarkMode
+                    ? 'from-white via-indigo-200 to-purple-200 text-transparent bg-clip-text'
+                    : 'from-gray-900 via-indigo-900 to-purple-900 text-transparent bg-clip-text'
                 }`}
               >
-                <div className="p-8">
-                  <div className="flex items-start gap-4 mb-6">
-                    <div
-                      className={`w-16 h-16 rounded-3xl flex items-center justify-center transition-colors duration-300 ${
-                        isDarkMode
-                          ? 'bg-gray-700'
-                          : 'bg-gradient-to-br from-indigo-100 to-purple-100'
-                      }`}
-                    >
-                      <span className="text-2xl">{getPlatformIcon(log.platform)}</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3
-                        className={`font-bold text-xl mb-2 line-clamp-2 transition-colors duration-300 ${
-                          isDarkMode ? 'text-white' : 'text-slate-800'
-                        }`}
-                      >
-                        {log.title}
-                      </h3>
-                      <div
-                        className={`flex items-center gap-3 text-sm transition-colors duration-300 ${
-                          isDarkMode ? 'text-gray-400' : 'text-slate-500'
-                        }`}
-                      >
-                        <span
-                          className={`px-3 py-1 rounded-xl font-medium transition-colors duration-300 ${
-                            isDarkMode
-                              ? 'bg-indigo-900/30 text-indigo-300'
-                              : 'bg-indigo-100 text-indigo-700'
-                          }`}
-                        >
-                          {log.platform.toUpperCase()}
-                        </span>
-                        <span>•</span>
-                        <span>{new Date(log.downloadedAt).toLocaleDateString('id-ID')}</span>
-                      </div>
-                    </div>
-                  </div>
+                {searchTerm || selectedPlatform !== 'all'
+                  ? '🔍 No Results Found'
+                  : '📁 No Downloads Yet'}
+              </h3>
+
+              <p className={`text-lg mb-8 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                {searchTerm || selectedPlatform !== 'all'
+                  ? 'Try adjusting your search terms or clear the filters to see all downloads'
+                  : 'Ready to start downloading? Your downloaded files will appear here with beautiful cards!'}
+              </p>
+
+              {searchTerm || selectedPlatform !== 'all' ? (
+                <button
+                  onClick={() => {
+                    setSearchTerm('')
+                    setSelectedPlatform('all')
+                  }}
+                  className="action-button primary group hover:shadow-2xl transition-all duration-300"
+                >
+                  <Trash2 className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
+                  Clear All Filters
+                </button>
+              ) : (
+                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                   <div
-                    className={`rounded-3xl p-6 mb-6 transition-colors duration-300 ${
-                      isDarkMode ? 'bg-gray-700/80' : 'bg-slate-50/80'
+                    className={`px-6 py-3 rounded-2xl border ${
+                      isDarkMode
+                        ? 'bg-gray-800/50 border-gray-700 text-gray-300'
+                        : 'bg-white/50 border-gray-200 text-gray-600'
                     }`}
                   >
-                    <div className="flex items-center gap-4 mb-2">
-                      {getFileIcon(log.filePath)}
-                      <span
-                        className={`text-base font-medium truncate transition-colors duration-300 ${
-                          isDarkMode ? 'text-gray-200' : 'text-slate-700'
-                        }`}
-                      >
-                        {log.filePath.split('/').pop() || log.filePath.split('\\').pop()}
-                      </span>
-                    </div>
-                    <p
-                      className={`text-sm truncate transition-colors duration-300 ${
-                        isDarkMode ? 'text-gray-400' : 'text-slate-500'
-                      }`}
-                    >
-                      📁 {log.filePath}
-                    </p>
-                  </div>
-                  <div className="flex gap-4">
-                    <button
-                      onClick={() => window.api?.openPath(log.filePath)}
-                      className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 text-white rounded-3xl font-semibold shadow-xl text-lg transition-all duration-200 ${
-                        isDarkMode
-                          ? 'bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800'
-                          : 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700'
-                      }`}
-                    >
-                      <FolderOpen className="w-5 h-5" />
-                      Buka File
-                    </button>
-                    <button
-                      title="Buka di Browser"
-                      onClick={() => window.open(log.url, '_blank')}
-                      className={`px-6 py-4 rounded-3xl font-semibold shadow-lg transition-all duration-200 border ${
-                        isDarkMode
-                          ? 'bg-gray-700/80 text-gray-300 border-gray-600 hover:bg-gray-600/80 hover:text-white'
-                          : 'bg-white/80 text-slate-700 border-slate-200 hover:bg-white'
-                      }`}
-                    >
-                      <ExternalLink className="w-5 h-5" />
-                    </button>
+                    <span className="text-sm font-medium">
+                      💡 Tip: Try downloading from YouTube, Instagram, or TikTok
+                    </span>
                   </div>
                 </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+              {filteredLogs.map((log, index) => (
                 <div
-                  className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none ${
-                    isDarkMode
-                      ? 'bg-gradient-to-r from-indigo-900/5 to-purple-900/5'
-                      : 'bg-gradient-to-r from-indigo-500/5 to-purple-500/5'
-                  }`}
-                />
-              </div>
-            ))}
-          </div>
-        )}
-        {filteredLogs.length > 0 && (
-          <div className="mt-12 text-center">
-            <p
-              className={`text-lg transition-colors duration-300 ${isDarkMode ? 'text-gray-400' : 'text-slate-600'}`}
-            >
-              Menampilkan {filteredLogs.length} dari {logs.length} download
-            </p>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
+                  key={index}
+                  className={`card-container ${isDarkMode ? 'dark' : 'light'} hover:scale-[1.02] transition-all duration-300 group relative overflow-hidden`}
+                >
+                  {/* Background gradient on hover */}
+                  <div
+                    className={`absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300 ${
+                      isDarkMode
+                        ? 'bg-gradient-to-br from-indigo-500 to-purple-600'
+                        : 'bg-gradient-to-br from-indigo-200 to-purple-300'
+                    }`}
+                  />
 
-function StatBox({
-  icon,
-  label,
-  value,
-  color,
-  isDarkMode
-}: {
-  icon: JSX.Element
-  label: string
-  value: number
-  color: string
-  isDarkMode: boolean
-}) {
-  return (
-    <div
-      className={`backdrop-blur-xl rounded-3xl p-6 border shadow-xl transition-colors duration-300 ${
-        isDarkMode ? 'bg-gray-800/70 border-gray-700/50' : 'bg-white/70 border-white/50'
-      }`}
-    >
-      <div className="flex items-center gap-4">
-        <div
-          className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors duration-300 ${
-            isDarkMode ? `bg-${color}-900/30` : `bg-${color}-100`
-          }`}
-        >
-          {icon}
-        </div>
-        <div>
-          <p
-            className={`text-3xl font-bold transition-colors duration-300 ${
-              isDarkMode ? 'text-white' : 'text-slate-800'
-            }`}
-          >
-            {value}
-          </p>
-          <p
-            className={`text-sm mt-1 transition-colors duration-300 ${isDarkMode ? 'text-gray-400' : 'text-slate-600'}`}
-          >
-            {label}
-          </p>
-        </div>
+                  <div className="relative z-10">
+                    <div className="flex items-start gap-4 mb-6">
+                      <div
+                        className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 ${
+                          isDarkMode
+                            ? 'bg-gray-700 group-hover:bg-gray-600'
+                            : 'bg-gradient-to-br from-indigo-100 to-purple-100 group-hover:from-indigo-200 group-hover:to-purple-200'
+                        }`}
+                      >
+                        <span className="text-2xl group-hover:scale-110 transition-transform duration-300">
+                          {getPlatformIcon(log.platform)}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3
+                          className={`font-bold text-lg mb-2 line-clamp-2 transition-colors duration-300 group-hover:text-indigo-600 ${
+                            isDarkMode ? 'text-white group-hover:text-indigo-400' : 'text-gray-900'
+                          }`}
+                        >
+                          {log.title}
+                        </h3>
+                        <div
+                          className={`flex items-center gap-3 text-sm ${
+                            isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                          }`}
+                        >
+                          <span
+                            className={`status-badge ${log.platform.toLowerCase()} transition-transform duration-300 group-hover:scale-105`}
+                          >
+                            {log.platform.toUpperCase()}
+                          </span>
+                          <span>•</span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {new Date(log.downloadedAt).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric'
+                            })}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      className={`card-container ${isDarkMode ? 'dark' : 'light'} mb-6 transition-all duration-300 group-hover:shadow-lg`}
+                    >
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="transition-transform duration-300 group-hover:scale-110">
+                          {getFileIcon(log.filePath)}
+                        </div>
+                        <span
+                          className={`text-sm font-medium truncate transition-colors duration-300 ${
+                            isDarkMode
+                              ? 'text-gray-200 group-hover:text-white'
+                              : 'text-gray-700 group-hover:text-gray-900'
+                          }`}
+                        >
+                          {log.filePath.split('/').pop() || log.filePath.split('\\').pop()}
+                        </span>
+                      </div>
+                      <p
+                        className={`text-xs truncate flex items-center gap-1 ${
+                          isDarkMode ? 'text-gray-500' : 'text-gray-500'
+                        }`}
+                      >
+                        <FolderOpen className="w-3 h-3" />
+                        {log.filePath.replace(/\\/g, '/')}
+                      </p>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => window.api?.openPath(log.filePath)}
+                        className="action-button primary flex-1 group-hover:shadow-xl transition-shadow duration-300"
+                      >
+                        <FolderOpen className="w-4 h-4" />
+                        Open File
+                      </button>
+                      <button
+                        onClick={() => window.open(log.url, '_blank')}
+                        className="icon-button primary group-hover:shadow-xl transition-shadow duration-300"
+                        title="Open in Browser"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <br />
+            <div className="text-center mt-12">
+              <div
+                className={`inline-flex items-center gap-3 px-8 py-4 rounded-3xl border ${
+                  isDarkMode
+                    ? 'bg-gray-800/50 border-gray-700 text-gray-300'
+                    : 'bg-white/50 border-gray-200 text-gray-600'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  <span className="font-medium">
+                    Showing {filteredLogs.length} of {logs.length} downloads
+                  </span>
+                </div>
+                {filteredLogs.length !== logs.length && (
+                  <>
+                    <span>•</span>
+                    <span className="text-sm">
+                      {logs.length - filteredLogs.length} hidden by filters
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

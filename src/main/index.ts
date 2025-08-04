@@ -46,8 +46,26 @@ function getVideoTitle(url: string): Promise<string> {
       ? path.join(process.resourcesPath, 'app.asar.unpacked', 'resources', 'bin', 'yt-dlp.exe')
       : resolvePath(__dirname, '../../resources/bin/yt-dlp.exe')
 
-    const yt = spawn(ytdlpPath, ['-j', url])
+    const args = [
+      '-j',
+      '--user-agent',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+      '--no-cookies',
+      '--no-check-certificates',
+      '--no-warnings',
+      '--ignore-errors',
+      '--skip-download',
+      '--extractor-args',
+      'youtube:player_client=web',
+      '--retries',
+      '3',
+      '--socket-timeout',
+      '30',
+      
+      url
+    ]
 
+    const yt = spawn(ytdlpPath, args)
     let json = ''
 
     yt.stdout.on('data', (data) => {
@@ -55,23 +73,25 @@ function getVideoTitle(url: string): Promise<string> {
     })
 
     yt.stderr.on('data', (data) => {
-      console.error('[yt-dlp INFO ERROR]', data.toString())
+      console.error('[yt-dlp STDERR]', data.toString())
     })
 
     yt.on('close', (code) => {
       if (code === 0) {
         try {
           const info = JSON.parse(json)
-          resolve(info.title)
+          resolve(info.title || 'Unknown Title')
         } catch (e) {
-          reject(new Error('Failed to parse yt-dlp JSON output'))
+          reject(new Error('Failed to parse yt-dlp JSON output: ' + e))
         }
       } else {
-        reject(new Error('yt-dlp exited with error code ' + code))
+        reject(new Error(`yt-dlp exited with error code ${code}`))
       }
     })
 
-    yt.on('error', reject)
+    yt.on('error', (error) => {
+      reject(new Error(`yt-dlp spawn error: ${error.message}`))
+    })
   })
 }
 
@@ -125,6 +145,17 @@ app.whenReady().then(() => {
       properties: ['openDirectory']
     })
     return result.canceled ? null : result.filePaths[0]
+  })
+
+  ipcMain.handle('dialog:selectVideoFiles', async () => {
+    const result = await dialog.showOpenDialog({
+      properties: ['openFile', 'multiSelections'],
+      filters: [
+        { name: 'Video Files', extensions: ['mp4'] },
+        { name: 'All Files', extensions: ['*'] }
+      ]
+    })
+    return result.canceled ? null : result.filePaths
   })
 
   ipcMain.handle('save-file', async (_event, buffer, suggestedFilename) => {
@@ -186,12 +217,25 @@ app.whenReady().then(() => {
           '0',
           '-o',
           outputPath,
+          '--user-agent',
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          '--add-header',
+          'Accept-Language:en-US,en;q=0.9',
+          '--add-header',
+          'Accept:text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          '--no-check-certificates',
+          '--prefer-insecure',
+          '--force-ipv4',
+          '--retries',
+          '3',
+          '--fragment-retries',
+          '3',
           '--progress',
           '-v',
           '--limit-rate',
           `${rateLimit}K`,
           '--no-warnings',
-          '--no-abort-on-error',
+          '--no-abort-on-error'
         ]
 
         const yt = spawn(ytdlpPath, args)
@@ -295,6 +339,19 @@ app.whenReady().then(() => {
           'bv[ext=mp4]+ba[ext=m4a]',
           '--merge-output-format',
           'mp4',
+          '--user-agent',
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          '--add-header',
+          'Accept-Language:en-US,en;q=0.9',
+          '--add-header',
+          'Accept:text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          '--no-check-certificates',
+          '--prefer-insecure',
+          '--force-ipv4',
+          '--retries',
+          '3',
+          '--fragment-retries',
+          '3',
           '--progress',
           '-v',
           '--ffmpeg-location',
@@ -417,6 +474,307 @@ app.whenReady().then(() => {
       return { free: 0, total: 0 }
     }
   })
+
+  ipcMain.handle(
+    'convert-video-to-audio',
+    async (event, videoPath: string, conversionId: string) => {
+      return new Promise<{ outputPath: string }>((resolve, reject) => {
+        console.log('Converting video:', videoPath, 'ID:', conversionId)
+
+        if (!videoPath || typeof videoPath !== 'string') {
+          reject(new Error('Invalid video path provided'))
+          return
+        }
+
+        const inputPath = videoPath
+        const outputDir = path.dirname(inputPath)
+        const baseName = path.basename(inputPath, '.mp4')
+        const outputPath = path.join(outputDir, `${baseName}.mp3`)
+
+        const ffmpegPath = app.isPackaged
+          ? path.join(
+              process.resourcesPath,
+              'app.asar.unpacked',
+              'resources',
+              'bin',
+              'ffmpeg',
+              'bin',
+              'ffmpeg.exe'
+            )
+          : path.resolve(__dirname, '../../resources/bin/ffmpeg/bin/ffmpeg.exe')
+
+        const args = [
+          '-i',
+          inputPath,
+          '-vn',
+          '-acodec',
+          'libmp3lame',
+          '-ab',
+          '192k',
+          '-ar',
+          '44100',
+          '-y',
+          outputPath
+        ]
+
+        console.log('FFmpeg command:', ffmpegPath, args)
+
+        const ffmpeg = spawn(ffmpegPath, args)
+        activeDownloads.set(conversionId, ffmpeg)
+
+        ffmpeg.stdout.on('data', (data) => {
+          console.log(`[FFmpeg] ${data.toString()}`)
+        })
+
+        ffmpeg.stderr.on('data', (data) => {
+          const text = data.toString()
+          console.log(`[FFmpeg] ${text}`)
+
+          // Parse progress from FFmpeg output
+          const timeMatch = text.match(/time=(\d{2}):(\d{2}):(\d{2}.\d{2})/)
+          if (timeMatch) {
+            // Send progress update to renderer
+            event.sender.send('conversion-progress', {
+              id: conversionId,
+              progress: 50 // Simplified progress tracking
+            })
+          }
+        })
+
+        ffmpeg.on('close', (code) => {
+          activeDownloads.delete(conversionId)
+          console.log(`FFmpeg finished with code: ${code}`)
+          if (code === 0) {
+            resolve({ outputPath })
+          } else {
+            reject(new Error(`FFmpeg exited with code ${code}`))
+          }
+        })
+
+        ffmpeg.on('error', (err) => {
+          activeDownloads.delete(conversionId)
+          console.error('FFmpeg error:', err)
+          reject(err)
+        })
+      })
+    }
+  )
+
+  ipcMain.handle('get-video-title', async (_event, videoUrl: string) => {
+    return getVideoTitle(videoUrl)
+  })
+  ipcMain.handle(
+    'clip-video',
+    async (event, videoUrl: string, startTime: string, endTime: string, clipId: string) => {
+      return new Promise<{ outputPath: string }>(async (resolve, reject) => {
+        console.log(
+          'Clipping video:',
+          videoUrl,
+          'Start:',
+          startTime,
+          'End:',
+          endTime,
+          'ID:',
+          clipId
+        )
+
+        try {
+          const downloadPath = (store.get('downloadPath') as string) || app.getPath('downloads')
+          const now = new Date()
+          const formattedDate = now.toISOString().replace(/:/g, '-').replace(/\..+/, '')
+
+          let title = 'video-clip'
+          try {
+            title = await getVideoTitle(videoUrl)
+          } catch (err) {
+            console.error('Failed to fetch video title:', err)
+          }
+
+          const safeTitle = title.replace(/[<>:"/\\|?*&%=]+/g, '').replace(/\s+/g, '-')
+          const finalName = `${safeTitle}_clip_${startTime.replace(/:/g, '-')}-${endTime.replace(/:/g, '-')}_${formattedDate}_${clipId}.mp4`
+          const outputPath = path.join(downloadPath, finalName)
+
+          const ytdlpPath = app.isPackaged
+            ? path.join(
+                process.resourcesPath,
+                'app.asar.unpacked',
+                'resources',
+                'bin',
+                'yt-dlp.exe'
+              )
+            : path.resolve(__dirname, '../../resources/bin/yt-dlp.exe')
+
+          const ffmpegPath = app.isPackaged
+            ? path.join(
+                process.resourcesPath,
+                'app.asar.unpacked',
+                'resources',
+                'bin',
+                'ffmpeg',
+                'bin',
+                'ffmpeg.exe'
+              )
+            : path.resolve(__dirname, '../../resources/bin/ffmpeg/bin/ffmpeg.exe')
+
+          // Convert time format to seconds for yt-dlp
+          const convertTimeToSeconds = (time: string): number => {
+            const parts = time.split(':').map(Number)
+            if (parts.length === 2) {
+              return parts[0] * 60 + parts[1] // MM:SS
+            } else if (parts.length === 3) {
+              return parts[0] * 3600 + parts[1] * 60 + parts[2] // HH:MM:SS
+            }
+            return 0
+          }
+
+          const startSeconds = convertTimeToSeconds(startTime)
+          const endSeconds = convertTimeToSeconds(endTime)
+          const duration = endSeconds - startSeconds
+
+          const args = [
+            videoUrl,
+            '-o',
+            outputPath,
+            '-f',
+            'bestvideo[ext=mp4][height<=1080]+bestaudio[ext=m4a]/best[ext=mp4][height<=1080]/best',
+            '--merge-output-format',
+            'mp4',
+            '--external-downloader',
+            'ffmpeg',
+            '--external-downloader-args',
+            `ffmpeg:-ss ${startSeconds} -t ${duration} -c:v libx264 -preset slow -crf 18 -c:a aac -b:a 320k -avoid_negative_ts make_zero`,
+            '--ffmpeg-location',
+            ffmpegPath,
+            '--user-agent',
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            '--add-header',
+            'Accept-Language:en-US,en;q=0.9',
+            '--add-header',
+            'Accept:text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            '--no-check-certificates',
+            '--prefer-insecure',
+            '--force-ipv4',
+            '--retries',
+            '3',
+            '--fragment-retries',
+            '3',
+            '--progress',
+            '-v',
+            '--no-warnings',
+            '--no-abort-on-error',
+            '--embed-metadata',
+            '--write-thumbnail',
+            '--no-overwrites'
+          ]
+
+          console.log('yt-dlp command:', ytdlpPath, args)
+
+          const yt = spawn(ytdlpPath, args)
+          activeDownloads.set(clipId, yt)
+
+          yt.stdout.on('data', (data) => {
+            const text = data.toString()
+            console.log(`[yt-dlp] ${text}`)
+
+            // Parse download progress from yt-dlp
+            const downloadMatch = text.match(
+              /\[download\]\s+(\d+\.\d+)%.*?at\s+([\d.]+[KMG]?i?B\/s).*?ETA\s+(\d+:\d+)/
+            )
+
+            if (downloadMatch) {
+              const percent = parseFloat(downloadMatch[1])
+              const speed = downloadMatch[2]
+              const eta = downloadMatch[3]
+              event.sender.send('clip-progress', {
+                id: clipId,
+                percent: Math.min(percent * 0.7, 70), // Download is 70% of total process
+                speed,
+                eta,
+                stage: 'downloading'
+              })
+            }
+          })
+
+          yt.stderr.on('data', (data) => {
+            const text = data.toString()
+            console.error(`[yt-dlp ERROR] ${text}`)
+
+            // Parse ffmpeg progress from stderr - Updated regex to match actual output format
+            const ffmpegMatch = text.match(
+              /frame=\s*(\d+)\s+fps=\s*([\d.]+)\s+q=([\d.-]+)\s+size=\s*(\w+)\s+time=(\d{2}:\d{2}:\d{2}\.\d{2})\s+bitrate=([\d.]+\w+\/s)\s+speed=([\d.]+x)/
+            )
+
+            if (ffmpegMatch) {
+              const frame = parseInt(ffmpegMatch[1])
+              const size = ffmpegMatch[4]
+              const timeProcessed = ffmpegMatch[5]
+              const speed = ffmpegMatch[7]
+
+              // Convert time to seconds for progress calculation
+              const [hours, minutes, seconds] = timeProcessed.split(':')
+              const processedSeconds =
+                parseInt(hours) * 3600 + parseInt(minutes) * 60 + parseFloat(seconds)
+
+              // Calculate progress based on duration
+              const totalDuration = duration // Use the duration we calculated earlier
+
+              let progressPercent = 0
+              if (totalDuration > 0) {
+                // Calculate progress as percentage of total duration processed
+                progressPercent = Math.min((processedSeconds / totalDuration) * 100, 100)
+              } else {
+                // Fallback: estimate progress based on frame count (rough estimate)
+                progressPercent = Math.min((frame / 300) * 100, 100) // Assume ~300 frames for unknown duration
+              }
+
+              console.log(
+                `Progress: ${progressPercent.toFixed(1)}% - Frame: ${frame}, Time: ${timeProcessed}, Duration: ${totalDuration}s`
+              )
+
+              event.sender.send('clip-progress', {
+                id: clipId,
+                percent: Math.round(progressPercent),
+                frame,
+                size,
+                timeProcessed,
+                speed,
+                stage: 'processing'
+              })
+            }
+          })
+
+          yt.on('close', (code) => {
+            activeDownloads.delete(clipId)
+            console.log(`yt-dlp finished with code: ${code}`)
+
+            const isDownloaded = fs.existsSync(outputPath) && fs.statSync(outputPath).size > 1024
+
+            if (code === 0 || isDownloaded) {
+              logDownload({
+                url: videoUrl,
+                title: finalName.replace('.mp4', ''),
+                platform: 'video-clip',
+                filePath: outputPath,
+                fileSize: isDownloaded ? fs.statSync(outputPath).size.toString() : undefined,
+                fileType: 'video/mp4'
+              })
+              resolve({ outputPath })
+            } else {
+              reject(new Error(`yt-dlp exited with code ${code}`))
+            }
+          })
+
+          yt.on('error', (err) => {
+            activeDownloads.delete(clipId)
+            console.error('yt-dlp error:', err)
+            reject(err)
+          })
+        } catch (error) {
+          reject(error)
+        }
+      })
+    }
+  )
 
   // Start window
   createWindow()

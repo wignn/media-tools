@@ -34,15 +34,6 @@ export function TopNavigation({ sidebarOpen, onToggleSidebar }: TopNavigationPro
           <h2 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
             Media Tool
           </h2>
-          <span
-            className={`px-3 py-1.5 text-sm font-bold rounded-full border transition-colors duration-300 ${
-              isDarkMode
-                ? "bg-gradient-to-r from-indigo-900/50 to-purple-900/50 text-indigo-300 border-indigo-700/50"
-                : "bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-700 border-indigo-200/50"
-            }`}
-          >
-            Premium
-          </span>
         </div>
       </div>
     </header>

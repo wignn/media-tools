@@ -18,7 +18,7 @@ export function TypeSelection({ selectedType, onTypeChange, isDarkMode = false }
       }`}
     >
       <div className="flex items-center gap-4 mb-6">
-        <div style={{ marginBottom: '1rem' }} className="w-12 mb-4 h-12 bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-200/50">
+        <div className="w-12 h-12 bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-200/50">
           <Monitor className="w-6 h-6 text-white" />
         </div>
         <div> 

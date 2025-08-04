@@ -1,29 +1,19 @@
 "use client"
-
-import { Download, Settings, Home, HelpCircle } from "lucide-react"
+import logo from '../assets/logo.png'
+import { Download, Settings, Home, HelpCircle, RefreshCw, Scissors } from "lucide-react"
 import { useEffect, useState } from "react"
 import { NavLink } from "react-router-dom"
 import { useTheme } from "../contexts/theme-context"
+import { useDownloadHistoryStore } from "../store/downloadHistoryStore"
 
 interface SidebarProps {
   isOpen: boolean
 }
 
-interface DownloadLog {
-  url: string
-  title: string
-  platform: string
-  filePath: string
-  downloadedAt: string
-  fileSize?: string
-  fileType?: string
-}
-
 export function Sidebar({ isOpen }: SidebarProps) {
-  const [logs, setLogs] = useState<DownloadLog[]>([])
   const [diskSpace, setDiskSpace] = useState<{ total: number; free: number }>({ total: 0, free: 0 })
   const { isDarkMode, toggleTheme } = useTheme()
-
+  const { logs } = useDownloadHistoryStore()
   useEffect(() => {
     const storedTheme = localStorage.getItem("theme")
     if (storedTheme === "dark") {
@@ -37,7 +27,6 @@ export function Sidebar({ isOpen }: SidebarProps) {
     }
 
     window.addEventListener("storage", handleStorageChange)
-    window.api?.getLogs().then(setLogs).catch(console.error)
     window.api?.getDiskSpace().then(setDiskSpace).catch(console.error)
 
     return () => {
@@ -62,8 +51,12 @@ export function Sidebar({ isOpen }: SidebarProps) {
         }`}
       >
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200/50">
-            <Download className="w-6 h-6 text-white" />
+          <div className="w-12 h-12 bg-gradient-to-br  rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200/50">
+            <img
+              src={logo}
+              alt="Logo"
+              className="w-8 h-8 rounded-full object-cover"
+            />
           </div>
           <div>
             <h1
@@ -128,6 +121,41 @@ export function Sidebar({ isOpen }: SidebarProps) {
               <Download className="w-5 h-5" />
               <span className="font-semibold">Downloads</span>
             </NavLink>
+            <NavLink
+              to="/converter"
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                  isActive
+                    ? isDarkMode
+                      ? "bg-gradient-to-r from-indigo-900/50 to-purple-900/50 text-indigo-300 border border-indigo-700/50 shadow"
+                      : "bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-700 border border-indigo-200/50 shadow"
+                    : isDarkMode
+                      ? "text-gray-300 hover:bg-gray-800/60 hover:text-indigo-400"
+                      : "text-slate-600 hover:bg-white/60 hover:text-indigo-600"
+                }`
+              }
+            >
+              <RefreshCw className="w-5 h-5" />
+              <span className="font-semibold">Converter</span>
+            </NavLink>
+            <NavLink
+              to="/clip"
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                  isActive
+                    ? isDarkMode
+                      ? "bg-gradient-to-r from-indigo-900/50 to-purple-900/50 text-indigo-300 border border-indigo-700/50 shadow"
+                      : "bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-700 border border-indigo-200/50 shadow"
+                    : isDarkMode
+                      ? "text-gray-300 hover:bg-gray-800/60 hover:text-indigo-400"
+                      : "text-slate-600 hover:bg-white/60 hover:text-indigo-600"
+                }`
+              }
+            >
+              <Scissors className="w-5 h-5" />
+              <span className="font-semibold">Video Clip</span>
+            </NavLink>
+
           </nav>
         </div>
       </div>

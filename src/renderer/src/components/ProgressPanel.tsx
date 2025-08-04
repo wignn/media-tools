@@ -97,6 +97,7 @@ export function ProgressPanel({ status, percent = 0, isDownloading, isDarkMode =
             </div>
           </div>
         )}
+        <br/>
         <div
           className={`w-full rounded-2xl p-10 min-h-[160px] flex items-center justify-center shadow-inner transition-colors duration-300 ${
             isDarkMode
