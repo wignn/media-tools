@@ -21,7 +21,7 @@
 ## Features
 
 ### Core Functionality
-- **Multi-Platform Support** - Download from YouTube, Instagram, TikTok, Twitter, Facebook
+- **Multi-Platform Support** - Download from YouTube, Instagram, Twitter, Facebook
 - **Format Options** - Choose between video (MP4) or audio-only (MP3) downloads
 - **Video Clipping** - Extract specific segments from videos with precision
 - **Format Conversion** - Convert videos to different formats
@@ -280,7 +280,7 @@ We welcome contributions! Here's how you can help:
 **Multi-Platform Support**
 - **Audio-only Downloads** - MP3 extraction from videos
 - **Instagram Support** - Download Instagram videos and reels
-- **TikTok Support** - Download TikTok videos
+- **Facebook Support** - Download Facebook videos
 - **Custom Quality Selection** - Choose video quality before download
 - **Optimized download speed** and improved UI design
 
