@@ -21,7 +21,7 @@
 ## Features
 
 ### Core Functionality
-- **Multi-Platform Support** - Download from YouTube, Instagram, Twitter, Facebook
+- **Multi-Platform Support** - Download from YouTube, Instagra, Facebook
 - **Format Options** - Choose between video (MP4) or audio-only (MP3) downloads
 - **Video Clipping** - Extract specific segments from videos with precision
 - **Format Conversion** - Convert videos to different formats
