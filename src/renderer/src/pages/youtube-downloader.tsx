@@ -236,7 +236,7 @@ export default function Download() {
       className={`${
         isDarkMode
           ? 'bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800 min-h-screen'
-          : 'bg-gradient-to-br from-blue-100 via-purple-100 to-blue-50 text-gray-800'
+          : 'bg-gradient-to-br from-blue-100 via-purple-100 to-blue-50 text-gray-800 min-h-screen'
       }`}
     >
       <div
