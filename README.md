@@ -2,9 +2,9 @@
 
 <div align="center">
 
-![Wign MediaTool Banner](https://github.com/wignn/app-video-downloader/resources/banner.png)
+![Logo](https://raw.githubusercontent.com/wignn/video-downloader/main/resources/logo.png)
 
-**A powerful, modern video downloader for YouTube, Instagram, TikTok and more**
+**video downloader for YouTube, Instagram, Facebook**
 
 [![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](package.json)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
