@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Logo](https://raw.githubusercontent.com/wignn/video-downloader/main/resources/logo.png)
+![Logo](https://raw.githubusercontent.com/wignn/media-tools/main/resources/logo.png)
 
 **video downloader for YouTube, Instagram, Facebook**
 
@@ -59,7 +59,7 @@
 
 ```bash
 # Download from releases page
-https://github.com/wignn/app-video-downloader/releases/latest
+https://github.com/wignn/media-tools/releases/latest
 ```
 
 > **Note**: This application is currently only available for Windows. macOS and Linux support may be added in future releases.
@@ -68,7 +68,7 @@ https://github.com/wignn/app-video-downloader/releases/latest
 
 ```bash
 # Clone the repository
-git clone https://github.com/wignn/app-video-downloader.git
+git clone https://github.com/wignn/media-tools.git
 cd app-video-downloader
 
 # Install dependencies
