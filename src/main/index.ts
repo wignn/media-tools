@@ -5,67 +5,103 @@ import fs from 'fs'
 import path from 'path'
 import { ChildProcess, spawn } from 'child_process'
 import disk from 'diskusage'
-import os from 'os'
+import os, { tmpdir } from 'os'
 import Store from 'electron-store'
 import { v4 as uuid } from 'uuid'
 
 const store = new Store()
 
+let mainWindow: BrowserWindow | null = null
+
 const logPath = path.join(app.getPath('userData'), 'downloads.json')
 const activeDownloads = new Map<string, ChildProcess>()
 
-function logDownload(info: {
+interface DownloadInfo {
   url: string
   title: string
   platform: string
   filePath: string
   fileSize?: string
   fileType?: string
-}) {
-  let logs: any[] = []
-
-  if (fs.existsSync(logPath)) {
-    try {
-      logs = JSON.parse(fs.readFileSync(logPath, 'utf8'))
-    } catch {
-      logs = []
-    }
-  }
-
-  logs.push({
-    ...info,
-    downloadedAt: new Date().toISOString()
-  })
-
-  fs.writeFileSync(logPath, JSON.stringify(logs, null, 2), 'utf8')
 }
 
-function getVideoTitle(url: string): Promise<string> {
+
+interface ProgressData {
+  id: string
+  percent: number
+  speed?: string
+  eta?: string
+  stage?: string
+}
+
+const getBinaryPaths = () => {
+  const basePath = app.isPackaged
+    ? path.join(process.resourcesPath, 'app.asar.unpacked', 'resources', 'bin')
+    : resolve(__dirname, '../../resources/bin')
+
+  return {
+    ytdlp: path.join(basePath, 'yt-dlp.exe'),
+    ffmpeg: path.join(basePath, 'ffmpeg', 'bin', 'ffmpeg.exe'),
+    realsr: path.join(basePath, 'realsr-ncnn-vulkan', 'realsr-ncnn-vulkan.exe')
+  }
+}
+
+const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
+
+
+const logDownload = (info: DownloadInfo): void => {
+  try {
+    let logs: DownloadInfo[] = []
+
+    if (fs.existsSync(logPath)) {
+      try {
+        const data = fs.readFileSync(logPath, 'utf8')
+        logs = JSON.parse(data)
+      } catch (parseError) {
+        console.warn('Failed to parse existing logs, starting fresh:', parseError)
+        logs = []
+      }
+    }
+
+    logs.push({
+      ...info,
+      downloadedAt: new Date().toISOString()
+    } as DownloadInfo & { downloadedAt: string })
+
+    fs.writeFileSync(logPath, JSON.stringify(logs, null, 2), 'utf8')
+  } catch (error) {
+    console.error('Failed to log download:', error)
+  }
+}
+
+
+// Optimized video title fetching with caching
+const titleCache = new Map<string, string>()
+
+const getVideoTitle = async (url: string): Promise<string> => {
+  // Check cache first for performance
+  if (titleCache.has(url)) {
+    return titleCache.get(url)!
+  }
+
   return new Promise((resolve, reject) => {
-    const ytdlpPath = app.isPackaged
-      ? path.join(process.resourcesPath, 'app.asar.unpacked', 'resources', 'bin', 'yt-dlp.exe')
-      : resolvePath(__dirname, '../../resources/bin/yt-dlp.exe')
+    const { ytdlp } = getBinaryPaths()
 
     const args = [
       '-j',
-      '--user-agent',
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+      '--user-agent', USER_AGENT,
       '--no-cookies',
       '--no-check-certificates',
       '--no-warnings',
       '--ignore-errors',
       '--skip-download',
-      '--extractor-args',
-      'youtube:player_client=web',
-      '--retries',
-      '3',
-      '--socket-timeout',
-      '30',
-      
+      '--extractor-args', 'youtube:player_client=web',
+      '--retries', '3',
+      '--socket-timeout', '30',
       url
     ]
 
-    const yt = spawn(ytdlpPath, args)
+    const yt = spawn(ytdlp, args)
     let json = ''
 
     yt.stdout.on('data', (data) => {
@@ -80,7 +116,9 @@ function getVideoTitle(url: string): Promise<string> {
       if (code === 0) {
         try {
           const info = JSON.parse(json)
-          resolve(info.title || 'Unknown Title')
+          const title = info.title || 'Unknown Title'
+          titleCache.set(url, title)
+          resolve(title)
         } catch (e) {
           reject(new Error('Failed to parse yt-dlp JSON output: ' + e))
         }
@@ -96,7 +134,7 @@ function getVideoTitle(url: string): Promise<string> {
 }
 
 function createWindow(): void {
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 900,
     height: 670,
     title: 'Wign - Media Tool',
@@ -109,19 +147,19 @@ function createWindow(): void {
     }
   })
 
-  mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
+  mainWindow!.on('ready-to-show', () => {
+    mainWindow!.show()
   })
 
-  mainWindow.webContents.setWindowOpenHandler((details) => {
+  mainWindow!.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
     return { action: 'deny' }
   })
 
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+    mainWindow!.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+    mainWindow!.loadFile(join(__dirname, '../renderer/index.html'))
   }
 }
 
@@ -536,7 +574,7 @@ app.whenReady().then(() => {
             // Send progress update to renderer
             event.sender.send('conversion-progress', {
               id: conversionId,
-              progress: 50 // Simplified progress tracking
+              progress: 50 
             })
           }
         })
@@ -775,7 +813,283 @@ app.whenReady().then(() => {
       })
     }
   )
+ipcMain.handle(
+  'enhance-image',
+  async (event, fileBufferArray: number[], fileName: string, options: any, processId: string) => {
+    let tempInputPath: string | null = null;
+    let outputPath: string | null = null;
+    let proc: any = null;
+    let timeoutId: NodeJS.Timeout | null = null;
+    let stdoutListener: any = null;
+    let stderrListener: any = null;
+    let closeListener: any = null;
+    let errorListener: any = null;
 
+    try {
+      console.log('Received enhance request:', {
+        fileName,
+        bufferSize: fileBufferArray.length,
+        options,
+        processId
+      });
+
+      event.sender.send('enhance-progress', { id: processId, percent: 0 });
+
+      // Convert array back to Buffer
+      const fileBuffer = Buffer.from(fileBufferArray);
+
+      // Create temporary directory if it doesn't exist
+      const tempDir = path.join(tmpdir(), 'enhance-temp');
+      await fs.promises.mkdir(tempDir, { recursive: true });
+
+      // Create temporary input file
+      tempInputPath = path.join(tempDir, `input-${processId}-${fileName}`);
+
+      // Write the buffer to temporary file
+      await fs.promises.writeFile(tempInputPath, fileBuffer);
+      console.log('Temporary input file created:', tempInputPath);
+
+      const binaryPath = app.isPackaged
+        ? path.join(
+            process.resourcesPath,
+            'app.asar.unpacked',
+            'resources',
+            'bin',
+            'realsr-ncnn-vulkan',
+            'realsr-ncnn-vulkan.exe'
+          )
+        : path.resolve(
+            __dirname,
+            '../../resources/bin/realsr-ncnn-vulkan',
+            'realsr-ncnn-vulkan.exe'
+          );
+
+      const downloadPath = (store.get('downloadPath') as string) || app.getPath('downloads');
+      outputPath = path.join(downloadPath, `enhanced-${processId}.png`);
+
+      // Check if binary exists
+      try {
+        await fs.promises.access(binaryPath);
+        console.log('Binary exists and is accessible');
+      } catch (error) {
+        console.error('Binary not accessible:', error);
+        throw new Error(`Enhancement binary not found at: ${binaryPath}`);
+      }
+
+      return new Promise((resolve, reject) => {
+        const args = ['-i', tempInputPath!, '-o', outputPath!, '-m', 'models-DF2K'];
+
+        proc = spawn(binaryPath, args);
+        let processCompleted = false;
+
+        // Comprehensive cleanup function
+        const cleanup = async (forceKill: boolean = false) => {
+          try {
+            // Remove all event listeners to prevent memory leaks
+            if (proc && !proc.killed) {
+              if (stdoutListener) {
+                proc.stdout?.removeListener('data', stdoutListener);
+                stdoutListener = null;
+              }
+              if (stderrListener) {
+                proc.stderr?.removeListener('data', stderrListener);
+                stderrListener = null;
+              }
+              if (closeListener) {
+                proc.removeListener('close', closeListener);
+                closeListener = null;
+              }
+              if (errorListener) {
+                proc.removeListener('error', errorListener);
+                errorListener = null;
+              }
+
+              // Force kill process if needed
+              if (forceKill && !processCompleted) {
+                console.log('Force killing process...');
+                proc.kill('SIGKILL');
+                // Give it a moment to die
+                await new Promise(resolve => setTimeout(resolve, 100));
+              }
+            }
+
+            // Clear timeout
+            if (timeoutId) {
+              clearTimeout(timeoutId);
+              timeoutId = null;
+            }
+
+            // Clean up temporary input file
+            if (tempInputPath) {
+              try {
+                await fs.promises.unlink(tempInputPath);
+                console.log('Cleaned up input file:', tempInputPath);
+              } catch (unlinkError) {
+                console.error('Error cleaning up input file:', unlinkError);
+              }
+            }
+
+            // Force garbage collection of large buffers
+            if (global.gc) {
+              global.gc();
+            }
+          } catch (cleanupError) {
+            console.error('Error during cleanup:', cleanupError);
+          }
+        };
+
+        // Create event listeners as named functions to ensure proper removal
+        stdoutListener = (data: Buffer) => {
+          const lines = data.toString().split(/\r?\n/);
+          for (const line of lines) {
+            const trimmed = line.trim();
+            console.log('[stdout]', trimmed);
+
+            // Check if string contains progress
+            const match = trimmed.match(/^(\d{1,3})[,.]?(\d{1,2})?%$/);
+            if (match) {
+              const percent = parseInt(match[1]);
+              console.log(`Progress: ${percent}%`);
+
+              event.sender.send('enhance-progress', {
+                id: processId,
+                percent
+              });
+            }
+          }
+        };
+
+        stderrListener = (data: Buffer) => {
+          const message = data.toString();
+          console.error('[stderr]', message);
+
+          // Parse progress from stderr as well (realsr-ncnn-vulkan outputs progress to stderr)
+          const lines = message.split(/\r?\n/);
+          for (const line of lines) {
+            const trimmed = line.trim();
+
+            // Look for percentage patterns like "97,92%" or "98.33%"
+            const match = trimmed.match(/(\d{1,3})[,.](\d{1,2})%/) || trimmed.match(/(\d{1,3})%/);
+            if (match) {
+              let percent = parseInt(match[1]);
+              if (match[2]) {
+                // Handle decimal part for more precise progress
+                const decimal = parseInt(match[2]);
+                percent = Math.round(percent + decimal / 100);
+              }
+
+              const progressData = {
+                id: processId,
+                percent: Math.min(percent, 99) // Cap at 99% until completion
+              };
+
+              event.sender.send('enhance-progress', progressData);
+            }
+          }
+        };
+
+        closeListener = async (code: number) => {
+          console.log(`Process exited with code: ${code}`);
+
+          // Send final 100% progress on successful completion
+          if (code === 0) {
+            const finalProgressData = {
+              id: processId,
+              percent: 100
+            };
+            event.sender.send('enhance-progress', finalProgressData);
+          }
+
+          // Mark process as completed
+          processCompleted = true;
+
+          // Always cleanup
+          await cleanup();
+
+          if (code === 0) {
+            try {
+              // Check if output file exists
+              if (outputPath) {
+                await fs.promises.access(outputPath);
+
+                // Read the output file and convert to base64 for display
+                const outputBuffer = await fs.promises.readFile(outputPath);
+                const base64Data = `data:image/png;base64,${outputBuffer.toString('base64')}`;
+
+                // console.log('Enhancement completed successfully');
+                // console.log('Output file size:', outputBuffer.length);
+                // console.log('Output file location:', outputPath);
+
+                resolve({
+                  success: true,
+                  output: base64Data,
+                  filePath: outputPath
+                });
+              } else {
+                reject(new Error('Output path not defined'));
+              }
+            } catch (readError) {
+              console.error('Error reading output file:', readError);
+              reject(new Error('Enhancement completed but output file could not be read'));
+            }
+          } else {
+            reject(new Error(`Enhancement process failed with exit code ${code}`));
+          }
+        };
+
+        errorListener = async (error: Error) => {
+          console.error('Process spawn error:', error);
+          processCompleted = true;
+          await cleanup();
+          reject(new Error(`Failed to start enhancement process: ${error.message}`));
+        };
+
+        // Attach event listeners
+        if (proc.stdout) {
+          proc.stdout.on('data', stdoutListener);
+        }
+        if (proc.stderr) {
+          proc.stderr.on('data', stderrListener);
+        }
+        proc.on('close', closeListener);
+        proc.on('error', errorListener);
+
+        // Set a timeout to prevent hanging
+        timeoutId = setTimeout(async () => {
+          if (!processCompleted) {
+            console.log('Process timeout, killing...');
+            processCompleted = true;
+            await cleanup(true);
+            reject(new Error('Enhancement process timed out'));
+          }
+        }, 300000); // 5 minutes timeout
+
+        // Handle process interruption
+        process.once('beforeExit', async () => {
+          if (!processCompleted) {
+            console.log('App closing, cleaning up enhance process...');
+            await cleanup(true);
+          }
+        });
+      });
+    } catch (error) {
+      if (tempInputPath) {
+        try {
+          await fs.promises.unlink(tempInputPath);
+        } catch (unlinkError) {
+          console.error('Error cleaning up temp file on error:', unlinkError);
+        }
+      }
+      
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      
+      console.error('Error in enhance-image handler:', error);
+      throw error;
+    }
+  }
+);
   // Start window
   createWindow()
 
@@ -788,6 +1102,3 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
 })
 
-function resolvePath(dirname: string, relativePath: string): string {
-  return path.resolve(dirname, relativePath)
-}

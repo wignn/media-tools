@@ -1,11 +1,12 @@
 import { HashRouter, Routes, Route } from 'react-router-dom'
 import MainLayout from './MainLayout'
 import DownloadPage from './pages/Download'
-import { Settings } from './pages/Setting'
+import { Settings } from './pages/Settings'
 import { Converter } from './pages/Converter'
 import { VideoClip } from './pages/VideoClip'
 import { ThemeProvider } from './contexts/theme-context'
-import Download from './pages/youtube-downloader'
+import Download from './pages/YouTubeDownloader'
+import EnhanceImage from './pages/EnhanceImage'
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
             <Route path="/converter" element={<Converter />} />
             <Route path="/clip" element={<VideoClip />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/enchan-image" element={<EnhanceImage />} />
           </Route>
         </Routes>
       </HashRouter>

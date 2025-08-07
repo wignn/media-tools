@@ -32,7 +32,9 @@ export const DownloadStatsPanel: React.FC<DownloadStatsPanelProps> = ({
         <span style={{ color: textColor, fontSize: '0.9rem', opacity: 0.8 }}>Speed</span>
         <strong style={{ color: textColor, fontSize: '1.1rem' }}>{speed}</strong>
       </div>
-      <div style={{ height: '2rem', width: '1px', backgroundColor: borderColor, margin: '0 1rem' }} />
+      <div
+        style={{ height: '2rem', width: '1px', backgroundColor: borderColor, margin: '0 1rem' }}
+      />
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         <span style={{ color: textColor, fontSize: '0.9rem', opacity: 0.8 }}>ETA</span>
         <strong style={{ color: textColor, fontSize: '1.1rem' }}>{eta}</strong>

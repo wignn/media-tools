@@ -136,7 +136,6 @@ export class QueueManager {
    * @param id The ID of the item to retry.
    */
 
-  
   retry(id: string) {
     this.update(id, {
       status: 'Pending',

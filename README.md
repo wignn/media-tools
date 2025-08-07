@@ -21,6 +21,7 @@
 ## Features
 
 ### Core Functionality
+
 - **Multi-Platform Support** - Download from YouTube, Instagra, Facebook
 - **Format Options** - Choose between video (MP4) or audio-only (MP3) downloads
 - **Video Clipping** - Extract specific segments from videos with precision
@@ -28,6 +29,7 @@
 - **Custom Download Path** - Choose where to save your files
 
 ### Modern UI/UX
+
 - **Dark/Light Theme** - Beautiful themes with smooth transitions
 - **Glassmorphism Design** - Modern transparent design elements
 - **Responsive Layout** - Works perfectly on any screen size
@@ -35,6 +37,7 @@
 - **Queue Management** - Download multiple files with queue system
 
 ### Advanced Features
+
 - **Anti-blocking** - Bypass platform restrictions
 - **Download Statistics** - Track your download history
 - **Rate Limiting** - Control download speed to avoid throttling
@@ -44,6 +47,7 @@
 ## Installation
 
 ### Prerequisites
+
 - **Node.js** 18.0.0 or higher
 - **npm** or **yarn** package manager
 - **FFmpeg** (bundled with the app)
@@ -52,6 +56,7 @@
 ### Download Pre-built Binaries
 
 #### Windows
+
 ```bash
 # Download from releases page
 https://github.com/wignn/app-video-downloader/releases/latest
@@ -208,7 +213,8 @@ window.api.on('download-complete', (data) => {
   console.log('Download finished:', data.path)
 })
 ```
-<!-- 
+
+<!--
 ## Contributing
 
 We welcome contributions! Here's how you can help:
@@ -257,7 +263,9 @@ We welcome contributions! Here's how you can help:
 ## Changelog
 
 ### Version 2.1.0 (Latest) - 2025-08-04
+
 **Major UI Overhaul & New Features**
+
 - **Video Clipping Feature** - Extract specific segments from videos with precision timing
 - **Format Conversion Tool** - Convert videos between different formats
 - **Enhanced Download Statistics** - Comprehensive tracking of download history
@@ -267,7 +275,9 @@ We welcome contributions! Here's how you can help:
 - **Fixed YouTube blocking issues** with enhanced bypass methods
 
 ### Version 2.0.0 - 2025-07-15
+
 **Complete TypeScript Rewrite**
+
 - **Enhanced Queue System** - Multiple concurrent downloads with priority management
 - **Download Analytics** - Track download history and statistics
 - **Modern UI Framework** - Updated to React 19 and modern components
@@ -277,7 +287,9 @@ We welcome contributions! Here's how you can help:
 - **Enhanced Security** - Better security measures and validation
 
 ### Version 1.5.0 - 2025-06-20
+
 **Multi-Platform Support**
+
 - **Audio-only Downloads** - MP3 extraction from videos
 - **Instagram Support** - Download Instagram videos and reels
 - **Facebook Support** - Download Facebook videos
@@ -285,7 +297,9 @@ We welcome contributions! Here's how you can help:
 - **Optimized download speed** and improved UI design
 
 ### Version 1.4.0 - 2025-05-15
+
 **Batch Downloads & Queue Management**
+
 - **Batch Downloads** - Queue multiple videos for download
 - **Progress Tracking** - Real-time download progress display
 - **Retry Mechanism** - Automatic retry for failed downloads
@@ -293,7 +307,9 @@ We welcome contributions! Here's how you can help:
 - **Enhanced stability** and better large file handling
 
 ### Version 1.3.0 - 2025-04-10
+
 **Dark Mode & Settings**
+
 - **Dark Mode** - Toggle between light and dark themes
 - **Settings Page** - Configure application preferences
 - **Download History** - View and manage past downloads
@@ -313,4 +329,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Electron** - For the desktop application framework
 - **React** - For the beautiful user interface
 - **TailwindCSS** - For the styling system
-

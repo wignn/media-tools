@@ -137,7 +137,7 @@ export function VideoClip() {
     window.api.onClipProgress(handleProgress)
 
     return () => {
-      window.api.removeClipProgressListener()
+      window.api.off('clip-progress', handleProgress)
     }
   }, [])
 

@@ -22,7 +22,7 @@ export interface DownloadProcess {
 interface DownloadState {
   activeDownloads: DownloadProcess[]
   downloadHistory: DownloadProcess[]
-  
+
   addDownload: (download: DownloadProcess) => void
   updateDownload: (id: string, updates: Partial<DownloadProcess>) => void
   removeDownload: (id: string) => void
@@ -40,36 +40,32 @@ export const useDownloadStore = create<DownloadState>()(
 
       addDownload: (download) => {
         const { activeDownloads } = get()
-        const exists = activeDownloads.find(d => d.id === download.id)
-        
+        const exists = activeDownloads.find((d) => d.id === download.id)
+
         if (!exists) {
           const newDownload = {
             ...download,
             createdAt: Date.now()
           }
-          
-          set({ 
+
+          set({
             activeDownloads: [...activeDownloads, newDownload]
           })
-          
+
           get().addToHistory(newDownload)
         }
       },
 
       updateDownload: (id, updates) => {
         const { activeDownloads, downloadHistory } = get()
-        
+
         // Update active downloads
-        const updatedActive = activeDownloads.map(d =>
-          d.id === id ? { ...d, ...updates } : d
-        )
-        
+        const updatedActive = activeDownloads.map((d) => (d.id === id ? { ...d, ...updates } : d))
+
         // Update history
-        const updatedHistory = downloadHistory.map(d =>
-          d.id === id ? { ...d, ...updates } : d
-        )
-        
-        set({ 
+        const updatedHistory = downloadHistory.map((d) => (d.id === id ? { ...d, ...updates } : d))
+
+        set({
           activeDownloads: updatedActive,
           downloadHistory: updatedHistory
         })
@@ -77,17 +73,17 @@ export const useDownloadStore = create<DownloadState>()(
 
       removeDownload: (id) => {
         const { activeDownloads } = get()
-        set({ 
-          activeDownloads: activeDownloads.filter(d => d.id !== id)
+        set({
+          activeDownloads: activeDownloads.filter((d) => d.id !== id)
         })
       },
 
       addToHistory: (download) => {
         const { downloadHistory } = get()
-        const exists = downloadHistory.find(d => d.id === download.id)
-        
+        const exists = downloadHistory.find((d) => d.id === download.id)
+
         if (!exists) {
-          set({ 
+          set({
             downloadHistory: [download, ...downloadHistory.slice(0, 99)]
           })
         }
@@ -99,20 +95,20 @@ export const useDownloadStore = create<DownloadState>()(
 
       removeFromHistory: (id) => {
         const { downloadHistory } = get()
-        set({ 
-          downloadHistory: downloadHistory.filter(d => d.id !== id)
+        set({
+          downloadHistory: downloadHistory.filter((d) => d.id !== id)
         })
       },
 
       getActiveDownload: () => {
         const { activeDownloads } = get()
-        return activeDownloads.find(d => d.isDownloading)
+        return activeDownloads.find((d) => d.isDownloading)
       }
     }),
     {
       name: 'download-store',
       partialize: (state) => ({
-        downloadHistory: state.downloadHistory,
+        downloadHistory: state.downloadHistory
       })
     }
   )

@@ -13,13 +13,11 @@ export function GlobalProgressIndicator({ className = '' }: GlobalProgressIndica
   const { isDarkMode } = useTheme()
 
   // Combine all active processes
-  const allActiveProcesses: GlobalProcess[] = [
-    ...activeProcesses.filter(p => p.isActive),
-  ]
+  const allActiveProcesses: GlobalProcess[] = [...activeProcesses.filter((p) => p.isActive)]
 
   // Add active clip process if exists and not already in global processes
   if (activeClipProcess && activeClipProcess.isClipping) {
-    const exists = allActiveProcesses.find(p => p.id === activeClipProcess.id)
+    const exists = allActiveProcesses.find((p) => p.id === activeClipProcess.id)
     if (!exists) {
       const clipProgress: GlobalProcess = {
         id: activeClipProcess.id,
@@ -84,24 +82,26 @@ export function GlobalProgressIndicator({ className = '' }: GlobalProgressIndica
         >
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
-                process.type === 'clip' 
-                  ? 'bg-gradient-to-br from-purple-500 to-indigo-500'
-                  : process.type === 'convert'
-                  ? 'bg-gradient-to-br from-orange-500 to-red-500' 
-                  : 'bg-gradient-to-br from-emerald-500 to-cyan-500'
-              }`}>
+              <div
+                className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+                  process.type === 'clip'
+                    ? 'bg-gradient-to-br from-purple-500 to-indigo-500'
+                    : process.type === 'convert'
+                      ? 'bg-gradient-to-br from-orange-500 to-red-500'
+                      : 'bg-gradient-to-br from-emerald-500 to-cyan-500'
+                }`}
+              >
                 {getIcon(process.type)}
               </div>
               <div>
-                <p className={`font-semibold text-sm ${
-                  isDarkMode ? 'text-white' : 'text-slate-800'
-                }`}>
+                <p
+                  className={`font-semibold text-sm ${
+                    isDarkMode ? 'text-white' : 'text-slate-800'
+                  }`}
+                >
                   {getTypeLabel(process.type)}
                 </p>
-                <p className={`text-xs ${
-                  isDarkMode ? 'text-gray-400' : 'text-slate-500'
-                }`}>
+                <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-slate-500'}`}>
                   {process.title || 'Processing...'}
                 </p>
               </div>
@@ -109,7 +109,7 @@ export function GlobalProgressIndicator({ className = '' }: GlobalProgressIndica
             <button
               onClick={() => removeProcess(process.id)}
               className={`w-6 h-6 rounded-full flex items-center justify-center hover:scale-110 transition-transform ${
-                isDarkMode 
+                isDarkMode
                   ? 'hover:bg-gray-700 text-gray-400 hover:text-white'
                   : 'hover:bg-slate-100 text-slate-400 hover:text-slate-600'
               }`}
@@ -120,33 +120,37 @@ export function GlobalProgressIndicator({ className = '' }: GlobalProgressIndica
 
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <span className={`text-xs font-medium ${
-                isDarkMode ? 'text-gray-300' : 'text-slate-600'
-              }`}>
+              <span
+                className={`text-xs font-medium ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}
+              >
                 Progress
               </span>
-              <span className={`text-xs font-bold ${
-                isDarkMode ? 'text-white' : 'text-slate-800'
-              }`}>
+              <span className={`text-xs font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
                 {Math.min(Math.max(process.percent, 0), 100)}%
               </span>
             </div>
-            
-            <div className={`w-full rounded-full h-2 overflow-hidden shadow-inner ${
-              isDarkMode ? 'bg-gray-700' : 'bg-slate-200'
-            }`}>
+
+            <div
+              className={`w-full rounded-full h-2 overflow-hidden shadow-inner ${
+                isDarkMode ? 'bg-gray-700' : 'bg-slate-200'
+              }`}
+            >
               <div
                 className={`h-full rounded-full transition-all duration-500 ease-out progress-width ${
                   process.type === 'clip'
                     ? 'bg-gradient-to-r from-purple-500 to-indigo-500'
                     : process.type === 'convert'
-                    ? 'bg-gradient-to-r from-orange-500 to-red-500'
-                    : 'bg-gradient-to-r from-emerald-500 to-cyan-500'
+                      ? 'bg-gradient-to-r from-orange-500 to-red-500'
+                      : 'bg-gradient-to-r from-emerald-500 to-cyan-500'
                 }`}
-                style={{ '--progress-percent': `${Math.min(Math.max(process.percent, 0), 100)}%` } as React.CSSProperties}
+                style={
+                  {
+                    '--progress-percent': `${Math.min(Math.max(process.percent, 0), 100)}%`
+                  } as React.CSSProperties
+                }
               ></div>
             </div>
-            
+
             {(process.eta || process.speed) && (
               <div className="flex justify-between items-center text-xs">
                 {process.speed && (
@@ -161,10 +165,8 @@ export function GlobalProgressIndicator({ className = '' }: GlobalProgressIndica
                 )}
               </div>
             )}
-            
-            <p className={`text-xs ${
-              isDarkMode ? 'text-gray-400' : 'text-slate-500'
-            }`}>
+
+            <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-slate-500'}`}>
               {process.status}
             </p>
           </div>

@@ -31,30 +31,28 @@ export const useQueueStore = create<QueueState>((set, get) => ({
   queueManager: null,
   setQueueManager: (manager) => set({ queueManager: manager }),
   globalProgress: [],
-  
+
   addGlobalProgress: (progress) => {
     const { globalProgress } = get()
-    const exists = globalProgress.find(p => p.id === progress.id)
-    
+    const exists = globalProgress.find((p) => p.id === progress.id)
+
     if (!exists) {
       set({ globalProgress: [...globalProgress, progress] })
     }
   },
-  
+
   updateGlobalProgress: (id, updates) => {
     const { globalProgress } = get()
     set({
-      globalProgress: globalProgress.map(p => 
-        p.id === id ? { ...p, ...updates } : p
-      )
+      globalProgress: globalProgress.map((p) => (p.id === id ? { ...p, ...updates } : p))
     })
   },
-  
+
   removeGlobalProgress: (id) => {
     const { globalProgress } = get()
-    set({ globalProgress: globalProgress.filter(p => p.id !== id) })
+    set({ globalProgress: globalProgress.filter((p) => p.id !== id) })
   },
-  
+
   clearGlobalProgress: () => {
     set({ globalProgress: [] })
   }

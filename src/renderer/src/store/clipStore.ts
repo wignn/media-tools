@@ -39,14 +39,14 @@ export const useClipStore = create<ClipState>()(
 
       updateClipProcess: (id, updates) => {
         const { activeClipProcess, clipHistory } = get()
-        
+
         // Update active process if it matches
         if (activeClipProcess && activeClipProcess.id === id) {
           const updatedProcess = { ...activeClipProcess, ...updates }
           set({ activeClipProcess: updatedProcess })
-          
+
           // Also update in history if it exists there
-          const historyIndex = clipHistory.findIndex(item => item.id === id)
+          const historyIndex = clipHistory.findIndex((item) => item.id === id)
           if (historyIndex >= 0) {
             const newHistory = [...clipHistory]
             newHistory[historyIndex] = updatedProcess
@@ -54,7 +54,7 @@ export const useClipStore = create<ClipState>()(
           }
         } else {
           // Update in history only
-          const historyIndex = clipHistory.findIndex(item => item.id === id)
+          const historyIndex = clipHistory.findIndex((item) => item.id === id)
           if (historyIndex >= 0) {
             const newHistory = [...clipHistory]
             newHistory[historyIndex] = { ...newHistory[historyIndex], ...updates }
@@ -65,8 +65,8 @@ export const useClipStore = create<ClipState>()(
 
       addToHistory: (process) => {
         const { clipHistory } = get()
-        const exists = clipHistory.find(item => item.id === process.id)
-        
+        const exists = clipHistory.find((item) => item.id === process.id)
+
         if (!exists) {
           set({ clipHistory: [process, ...clipHistory] })
         }
@@ -78,8 +78,8 @@ export const useClipStore = create<ClipState>()(
 
       removeFromHistory: (id) => {
         const { clipHistory, activeClipProcess } = get()
-        set({ 
-          clipHistory: clipHistory.filter(item => item.id !== id),
+        set({
+          clipHistory: clipHistory.filter((item) => item.id !== id),
           activeClipProcess: activeClipProcess?.id === id ? null : activeClipProcess
         })
       }
@@ -87,7 +87,7 @@ export const useClipStore = create<ClipState>()(
     {
       name: 'clip-store', // Key for localStorage
       partialize: (state) => ({
-        clipHistory: state.clipHistory,
+        clipHistory: state.clipHistory
       })
     }
   )

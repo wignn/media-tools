@@ -14,7 +14,6 @@ asarUnpack:
 win:
   executableName: Wign Media Tool
   icon: build/icon.ico
-  
 
 nsis:
   artifactName: ${name}-${version}-setup.${ext}

@@ -10,7 +10,9 @@ export default function MainLayout() {
   const { isDarkMode } = useTheme()
 
   return (
-    <div className={`h-screen bg-gradient-to-br flex overflow-hidden ${isDarkMode ? 'bg-gray-800/80 border-gray-700/40 shadow-gray-900/20' : 'from-indigo-50 via-white to-purple-50'}`}>
+    <div
+      className={`h-screen bg-gradient-to-br flex overflow-hidden ${isDarkMode ? 'bg-gray-800/80 border-gray-700/40 shadow-gray-900/20' : 'from-indigo-50 via-white to-purple-50'}`}
+    >
       <Sidebar isOpen={sidebarOpen} />
 
       <div className="flex-1 flex flex-col">
@@ -24,7 +26,7 @@ export default function MainLayout() {
           </div>
         </main>
       </div>
-      
+
       {/* Global Progress Indicator */}
       <GlobalProgressIndicator />
     </div>

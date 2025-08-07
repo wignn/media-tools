@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-export type ProcessType = 'download' | 'clip' | 'convert'
+export type ProcessType = 'download' | 'clip' | 'convert' | 'enhance'
 export type ProcessStatus = 'pending' | 'processing' | 'completed' | 'error' | 'paused'
 
 export interface GlobalProcess {
@@ -18,7 +18,7 @@ export interface GlobalProcess {
   error?: string
   createdAt: number
   updatedAt: number
-  
+
   // Type specific data
   downloadData?: {
     format: string
@@ -35,24 +35,29 @@ export interface GlobalProcess {
     outputFormat: string
     quality?: string
   }
+  enchan?: {
+    inputPath: string
+    outputFormat: string
+    quality?: string
+  }
 }
 
 interface GlobalProcessState {
   activeProcesses: GlobalProcess[]
   processHistory: GlobalProcess[]
-  
+
   // Process management
   addProcess: (process: GlobalProcess) => void
   updateProcess: (id: string, updates: Partial<GlobalProcess>) => void
   removeProcess: (id: string) => void
   completeProcess: (id: string, outputPath?: string) => void
   errorProcess: (id: string, error: string) => void
-  
+
   // History management
   addToHistory: (process: GlobalProcess) => void
   clearHistory: () => void
   removeFromHistory: (id: string) => void
-  
+
   // Utility functions
   getActiveProcessesByType: (type: ProcessType) => GlobalProcess[]
   getProcessById: (id: string) => GlobalProcess | undefined
@@ -70,19 +75,19 @@ export const useGlobalProcessStore = create<GlobalProcessState>()(
 
       addProcess: (process) => {
         const { activeProcesses } = get()
-        const exists = activeProcesses.find(p => p.id === process.id)
-        
+        const exists = activeProcesses.find((p) => p.id === process.id)
+
         if (!exists) {
           const newProcess = {
             ...process,
             createdAt: Date.now(),
             updatedAt: Date.now()
           }
-          
-          set({ 
+
+          set({
             activeProcesses: [...activeProcesses, newProcess]
           })
-          
+
           // Also add to history
           get().addToHistory(newProcess)
         }
@@ -91,18 +96,18 @@ export const useGlobalProcessStore = create<GlobalProcessState>()(
       updateProcess: (id, updates) => {
         const { activeProcesses, processHistory } = get()
         const now = Date.now()
-        
+
         // Update active processes
-        const updatedActiveProcesses = activeProcesses.map(p =>
+        const updatedActiveProcesses = activeProcesses.map((p) =>
           p.id === id ? { ...p, ...updates, updatedAt: now } : p
         )
-        
+
         // Update history
-        const updatedHistory = processHistory.map(p =>
+        const updatedHistory = processHistory.map((p) =>
           p.id === id ? { ...p, ...updates, updatedAt: now } : p
         )
-        
-        set({ 
+
+        set({
           activeProcesses: updatedActiveProcesses,
           processHistory: updatedHistory
         })
@@ -110,8 +115,8 @@ export const useGlobalProcessStore = create<GlobalProcessState>()(
 
       removeProcess: (id) => {
         const { activeProcesses } = get()
-        set({ 
-          activeProcesses: activeProcesses.filter(p => p.id !== id)
+        set({
+          activeProcesses: activeProcesses.filter((p) => p.id !== id)
         })
       },
 
@@ -123,7 +128,7 @@ export const useGlobalProcessStore = create<GlobalProcessState>()(
           outputPath,
           updatedAt: Date.now()
         })
-        
+
         // Remove from active processes after a delay
         setTimeout(() => {
           get().removeProcess(id)
@@ -141,10 +146,10 @@ export const useGlobalProcessStore = create<GlobalProcessState>()(
 
       addToHistory: (process) => {
         const { processHistory } = get()
-        const exists = processHistory.find(p => p.id === process.id)
-        
+        const exists = processHistory.find((p) => p.id === process.id)
+
         if (!exists) {
-          set({ 
+          set({
             processHistory: [process, ...processHistory.slice(0, 99)] // Keep last 100 items
           })
         }
@@ -156,26 +161,25 @@ export const useGlobalProcessStore = create<GlobalProcessState>()(
 
       removeFromHistory: (id) => {
         const { processHistory } = get()
-        set({ 
-          processHistory: processHistory.filter(p => p.id !== id)
+        set({
+          processHistory: processHistory.filter((p) => p.id !== id)
         })
       },
 
       // Utility functions
       getActiveProcessesByType: (type) => {
         const { activeProcesses } = get()
-        return activeProcesses.filter(p => p.type === type && p.isActive)
+        return activeProcesses.filter((p) => p.type === type && p.isActive)
       },
 
       getProcessById: (id) => {
         const { activeProcesses, processHistory } = get()
-        return activeProcesses.find(p => p.id === id) || 
-               processHistory.find(p => p.id === id)
+        return activeProcesses.find((p) => p.id === id) || processHistory.find((p) => p.id === id)
       },
 
       hasActiveProcess: () => {
         const { activeProcesses } = get()
-        return activeProcesses.some(p => p.isActive)
+        return activeProcesses.some((p) => p.isActive)
       },
 
       getActiveDownloads: () => {
@@ -188,12 +192,15 @@ export const useGlobalProcessStore = create<GlobalProcessState>()(
 
       getActiveConverts: () => {
         return get().getActiveProcessesByType('convert')
+      },
+      getActiveEnhances: () => {
+        return get().getActiveProcessesByType('enhance')
       }
     }),
     {
       name: 'global-process-store',
       partialize: (state) => ({
-        processHistory: state.processHistory,
+        processHistory: state.processHistory
       })
     }
   )

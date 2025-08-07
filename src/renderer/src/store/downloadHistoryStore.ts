@@ -15,14 +15,14 @@ export interface DownloadLog {
 interface DownloadHistoryState {
   logs: DownloadLog[]
   isLoading: boolean
-  
+
   // Actions
   fetchLogs: () => Promise<void>
   addLog: (log: DownloadLog) => void
   clearLogs: () => void
   removeLog: (filePath: string) => void
   refreshLogs: () => Promise<void>
-  
+
   // Getters
   getLogsByPlatform: (platform: string) => DownloadLog[]
   getTodayLogs: () => DownloadLog[]
@@ -45,20 +45,21 @@ export const useDownloadHistoryStore = create<DownloadHistoryState>()(
             // Merge with existing store data and remove duplicates
             const { logs: existingLogs } = get()
             const combinedLogs = [...apiLogs, ...existingLogs]
-            
+
             // Remove duplicates based on filePath
-            const uniqueLogs = combinedLogs.filter((log, index, self) => 
-              index === self.findIndex(l => l.filePath === log.filePath)
+            const uniqueLogs = combinedLogs.filter(
+              (log, index, self) => index === self.findIndex((l) => l.filePath === log.filePath)
             )
-            
-            set({ 
-              logs: uniqueLogs
-                .sort((a, b) => new Date(b.downloadedAt).getTime() - new Date(a.downloadedAt).getTime()),
-              isLoading: false 
+
+            set({
+              logs: uniqueLogs.sort(
+                (a, b) => new Date(b.downloadedAt).getTime() - new Date(a.downloadedAt).getTime()
+              ),
+              isLoading: false
             })
             return
           }
-          
+
           // If API fails, use persisted data
           console.log('API unavailable, using persisted data')
           set({ isLoading: false })
@@ -75,9 +76,9 @@ export const useDownloadHistoryStore = create<DownloadHistoryState>()(
           id: log.id || Date.now().toString(),
           downloadedAt: log.downloadedAt || new Date().toISOString()
         }
-        
+
         // Add to beginning (latest first) and avoid duplicates
-        const exists = logs.find(l => l.filePath === newLog.filePath)
+        const exists = logs.find((l) => l.filePath === newLog.filePath)
         if (!exists) {
           set({ logs: [newLog, ...logs] })
         }
@@ -90,7 +91,7 @@ export const useDownloadHistoryStore = create<DownloadHistoryState>()(
 
       removeLog: (filePath) => {
         const { logs } = get()
-        set({ logs: logs.filter(log => log.filePath !== filePath) })
+        set({ logs: logs.filter((log) => log.filePath !== filePath) })
       },
 
       refreshLogs: async () => {
@@ -100,37 +101,29 @@ export const useDownloadHistoryStore = create<DownloadHistoryState>()(
       // Getters
       getLogsByPlatform: (platform) => {
         const { logs } = get()
-        return logs.filter(log => 
-          log.platform.toLowerCase() === platform.toLowerCase()
-        )
+        return logs.filter((log) => log.platform.toLowerCase() === platform.toLowerCase())
       },
 
       getTodayLogs: () => {
         const { logs } = get()
         const today = new Date().toDateString()
-        return logs.filter(log => 
-          new Date(log.downloadedAt).toDateString() === today
-        )
+        return logs.filter((log) => new Date(log.downloadedAt).toDateString() === today)
       },
 
       getVideoLogs: () => {
         const { logs } = get()
-        return logs.filter(log => 
-          log.filePath.match(/\.(mp4|avi|mov|mkv|webm|flv)$/i)
-        )
+        return logs.filter((log) => log.filePath.match(/\.(mp4|avi|mov|mkv|webm|flv)$/i))
       },
 
       getAudioLogs: () => {
         const { logs } = get()
-        return logs.filter(log => 
-          log.filePath.match(/\.(mp3|wav|flac|m4a|aac)$/i)
-        )
+        return logs.filter((log) => log.filePath.match(/\.(mp3|wav|flac|m4a|aac)$/i))
       }
     }),
     {
       name: 'download-history-store',
       partialize: (state) => ({
-        logs: state.logs,
+        logs: state.logs
       })
     }
   )
