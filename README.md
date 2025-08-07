@@ -266,36 +266,11 @@ We welcome contributions! Here's how you can help:
 
 **AI Image Enhancement & Major Optimizations**
 
-- ** AI Image Enhancement** - New AI-powered image enhancement feature
-  - Support for JPG, PNG, WebP, and BMP formats
-  - Drag & drop image upload with preview
-  - Real-time progress tracking with enhancement stages
-  - One-click download of enhanced images
-  - Memory-optimized processing architecture
-
-- ** Memory Optimization** - Critical performance improvements
-  - Reduced RAM usage from 8GB to <1GB during image processing
-  - Fixed memory leaks in file processing operations
-  - Implemented blob URL management for efficient memory usage
-  - Added automatic cleanup of temporary files and resources
-
-- ** Code Quality Improvements** - Major refactoring for better maintainability
-  - Fixed component naming inconsistencies across the codebase
-  - Standardized file naming conventions (PascalCase for components)
-  - Enhanced TypeScript compilation and error handling
-  - Improved import/export patterns throughout the application
-
-- ** Enhanced State Management** - Improved Zustand store architecture
-  - Added dedicated enhancement store for image processing
-  - Centralized processing path tracking to prevent conflicts
-  - Better state persistence and rehydration logic
-  - Enhanced error handling in state updates
-
-- ** Bug Fixes** - Resolved critical issues
-  - Fixed preview images disappearing when switching tabs
-  - Resolved TypeScript compilation errors and warnings
-  - Fixed circular dependency issues in imports
-  - Improved component export/import consistency
+- **AI Image Enhancement** - New AI-powered image enhancement feature
+- **Memory Optimization** - Critical performance 
+- **Code Quality Improvements** - Major refactoring for better maintainability
+- **Enhanced State Management** - Improved Zustand store architecture
+- **Bug Fixes** - Resolved critical issues
 
 
 ### Version 2.1.0 - 2025-08-04
