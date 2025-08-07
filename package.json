@@ -1,7 +1,7 @@
 {
   "name": "wign-mediatool",
-  "version": "2.1.0",
-  "description": "A simple and powerful video downloader for YouTube, Instagram, and Facebook. Built for fast, reliable, and user-friendly media downloading.",
+  "version": "2.2.0",
+  "description": "wign media tools",
   "main": "./out/main/index.js",
   "author": "Wign Astrea <wignn@users.noreply.github.com> (https://github.com/wignn)",
   "homepage": "https://electron-vite.org",

@@ -26,13 +26,6 @@ interface DownloadInfo {
 }
 
 
-interface ProgressData {
-  id: string
-  percent: number
-  speed?: string
-  eta?: string
-  stage?: string
-}
 
 const getBinaryPaths = () => {
   const basePath = app.isPackaged
@@ -1062,7 +1055,7 @@ ipcMain.handle(
             await cleanup(true);
             reject(new Error('Enhancement process timed out'));
           }
-        }, 300000); // 5 minutes timeout
+        }, 300000 * 2); // 5 minutes timeout
 
         // Handle process interruption
         process.once('beforeExit', async () => {

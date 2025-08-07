@@ -42,4 +42,4 @@ appImage:
 npmRebuild: false
 publish:
   provider: generic
-  url: https://github.com/wignn/app-video-downloader
+  url: https://github.com/wignn/media-tools
