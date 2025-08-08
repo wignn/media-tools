@@ -56,170 +56,124 @@ export function Settings() {
     }
   }
 
+  const cardBase = `w-full border rounded-2xl p-6 shadow-md transition-colors duration-200 ${
+    isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+  }`
+
   return (
     <div
-      className={`flex justify-center min-h-screen ${
+      className={`flex justify-center min-h-screen px-4 py-8 ${
         isDarkMode
           ? 'bg-gray-900 text-white'
           : 'bg-gradient-to-br from-blue-100 via-purple-100 to-blue-50 text-gray-800'
       }`}
     >
-      <div className="max-w-6xl w-full p-6 flex flex-col items-center gap-8">
-        <div className={`text-center py-8 w-full ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
+      <div className="max-w-5xl w-full flex flex-col items-center gap-8">
+        <div className="text-center w-full">
           <div className="flex items-center justify-center gap-3 mb-4">
             <div className="p-3 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl shadow-lg">
               <SettingsIcon className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-3xl font-bold">Pengaturan</h1>
+            <h1 className="text-3xl font-bold">Settings</h1>
           </div>
-          <p className={`text-lg ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-            Kelola preferensi dan konfigurasi aplikasi Anda
+          <p className={isDarkMode ? 'text-gray-300' : 'text-gray-600'}>
+            Manage your application preferences and configuration
           </p>
         </div>
-        <section
-          className={`w-full border rounded-2xl p-6 shadow-md ${
-            isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-          }`}
-        >
+        <section className={cardBase}>
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 bg-gradient-to-r from-blue-500 to-green-500 rounded-md shadow-md">
               <Download className="w-5 h-5 text-white" />
             </div>
-            <h2 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              Pengaturan Unduhan
-            </h2>
+            <h2 className="text-xl font-bold">Download Settings</h2>
           </div>
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span
-                className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}
-              >
-                Lokasi Unduhan
-              </span>
+            <div className="flex justify-between items-center flex-wrap gap-3">
+              <span className="text-sm font-medium">Download Location</span>
               <div className="flex items-center gap-3">
-                <span
-                  className={`text-sm truncate max-w-xs ${
-                    isDarkMode ? 'text-gray-400' : 'text-gray-500'
-                  }`}
-                >
+                <span className="text-sm truncate max-w-xs opacity-80">
                   {downloadPath}
                 </span>
                 <button
                   onClick={handleChangePath}
-                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg"
+                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg transition-colors"
                 >
-                  <FolderOpen className="w-4 h-4 inline-block mr-1" /> Ubah
+                  <FolderOpen className="w-4 h-4 inline-block mr-1" /> Change
                 </button>
               </div>
             </div>
             <DownloadLimit />
           </div>
         </section>
-        <section
-          className={`w-full border rounded-2xl p-6 shadow-md ${
-            isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-          }`}
-        >
+        <section className={cardBase}>
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-md shadow-md">
               <HardDrive className="w-5 h-5 text-white" />
             </div>
-            <h2 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              Penyimpanan
-            </h2>
+            <h2 className="text-xl font-bold">Storage</h2>
           </div>
           <div className="space-y-4">
-            <div style={{ marginBottom: '10px' }}>
+            <div>
               <div className="flex justify-between items-center mb-3">
-                <span
-                  className={`text-sm font-medium ${
-                    isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                  }`}
-                >
-                  Ruang Terpakai
+                <span className="text-sm font-medium">Used Space</span>
+                <span className="text-sm opacity-80">
+                  {storageUsed?.gb || '0.00'} GB used
                 </span>
-                <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  {storageUsed?.gb || '0.00'} GB digunakan
-                </span>
+                <br/>
               </div>
               <div
-                className={`w-full h-2 rounded-full ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}
+                className={`w-full h-2 rounded-full ${
+                  isDarkMode ? 'bg-gray-700' : 'bg-gray-200'
+                }`}
               >
                 <div
                   className="h-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-full"
-                  style={{ width: `${storageUsed?.percent || '0.00'}%`, marginBottom: '10px' }}
-                ></div>
+                  style={{ width: `${storageUsed?.percent || '0.00'}%` }}
+                />
               </div>
-            </div>
-            <div>
-              <button
-                className={`w-full py-3 px-4 border-2 border-dashed rounded-lg text-sm font-medium ${
-                  isDarkMode
-                    ? 'border-gray-600 text-gray-300 hover:border-gray-500'
-                    : 'border-gray-300 text-gray-700 hover:border-gray-400'
-                }`}
-              >
-                <HardDrive className="w-5 h-5 mx-auto mb-2" />
-                Bersihkan Cache
-              </button>
             </div>
           </div>
         </section>
-        <section
-          className={`w-full border rounded-2xl p-6 shadow-md ${
-            isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-          }`}
-        >
+
+        <section className={cardBase}>
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 bg-gradient-to-r from-teal-500 to-blue-500 rounded-md shadow-md">
               <Info className="w-5 h-5 text-white" />
             </div>
-            <h2 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              Tentang Aplikasi
-            </h2>
+            <h2 className="text-xl font-bold">About Application</h2>
           </div>
-          <ul className={`space-y-2 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+  
+          <ul className="space-y-2 text-sm opacity-90 mt-5">
             <li>
-              <strong>Nama Aplikasi:</strong> {appName}
+              <strong>App Name:</strong> {appName}
             </li>
             <li>
-              <strong>Versi:</strong> {appVersion}
+              <strong>Version:</strong> {appVersion}
             </li>
             <li>
-              <strong>Pembuat:</strong> {author}
+              <strong>Author:</strong> {author}
             </li>
           </ul>
         </section>
 
-        <section
-          className={`w-full border rounded-2xl p-6 shadow-md ${
-            isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-          }`}
-        >
+        <section className={cardBase}>
           <div className="flex items-center gap-3 mb-6">
-            <div
-              style={{ marginBottom: '10px' }}
-              className="p-2 bg-gradient-to-r from-gray-700 to-gray-900 rounded-md shadow-md"
-            >
+            <div className="p-2 bg-gradient-to-r from-gray-700 to-gray-900 rounded-md shadow-md">
               <Palette className="w-5 h-5 text-white" />
             </div>
-            <h2
-              style={{ marginBottom: '10px' }}
-              className={`text-xl font-bold  ${isDarkMode ? 'text-white' : 'text-gray-900'}`}
-            >
-              Tampilan
-            </h2>
+            <h2 className="text-xl font-bold">Appearance</h2>
           </div>
+          <br/>
           <button
             onClick={toggleTheme}
-            className={`flex items-center gap-2 px-4 py-2 rounded-md ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
               isDarkMode
                 ? 'bg-gray-700 hover:bg-gray-600 text-white'
                 : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
             }`}
           >
             {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            {isDarkMode ? 'Mode Terang' : 'Mode Gelap'}
+            {isDarkMode ? 'Light Mode' : 'Dark Mode'}
           </button>
         </section>
       </div>
