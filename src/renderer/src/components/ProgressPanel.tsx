@@ -1,7 +1,4 @@
-'use client'
-
 import { Activity, Download, CheckCircle, AlertCircle } from 'lucide-react'
-
 interface ProgressPanelProps {
   status: string
   percent?: number
