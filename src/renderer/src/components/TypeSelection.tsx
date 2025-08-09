@@ -1,7 +1,4 @@
-'use client'
-
 import { Monitor } from 'lucide-react'
-
 interface TypeSelectionProps {
   selectedType: string
   onTypeChange: (type: string) => void
