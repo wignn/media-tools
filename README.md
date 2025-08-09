@@ -6,7 +6,7 @@
 
 **video downloader for YouTube, Instagram, Facebook**
 
-[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](package.json)
+[![Version](https://img.shields.io/badge/version-2.2.0-blue.svg)](package.json)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Electron](https://img.shields.io/badge/Electron-35.1.5-9feaf9.svg)](https://www.electronjs.org/)
 [![React](https://img.shields.io/badge/React-19.1.0-61dafb.svg)](https://reactjs.org/)
