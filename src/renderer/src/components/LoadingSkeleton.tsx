@@ -1,5 +1,3 @@
-'use client'
-
 export function LoadingSkeleton({ isDarkMode }: { isDarkMode: boolean }) {
   return (
     <div
