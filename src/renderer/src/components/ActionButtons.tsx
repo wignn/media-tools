@@ -1,5 +1,3 @@
-'use client'
-
 import { Download } from 'lucide-react'
 
 interface ActionButtonsProps {
