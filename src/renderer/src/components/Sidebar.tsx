@@ -1,4 +1,3 @@
-"'use client'"
 import logo from '../assets/logo.png'
 import { Download, Settings, Home, HelpCircle, RefreshCw, Scissors, ArrowUp } from 'lucide-react'
 import { useEffect, useState } from 'react'
